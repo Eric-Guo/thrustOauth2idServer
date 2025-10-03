@@ -46,6 +46,20 @@ type TLS struct {
 	StoragePath   string   `yaml:"storagePath" json:"storagePath"`
 }
 
+type HTTP struct {
+	AddRequestStartHeader bool `yaml:"addRequestStartHeader" json:"addRequestStartHeader"`
+	GzipEnabled           bool `yaml:"gzipEnabled" json:"gzipEnabled"`
+	HTTPSPort             int  `yaml:"httpsPort" json:"httpsPort"`
+	IdleTimeout           int  `yaml:"idleTimeout" json:"idleTimeout"`
+	LogRequests           bool `yaml:"logRequests" json:"logRequests"`
+	MaxRequestBodyBytes   int  `yaml:"maxRequestBodyBytes" json:"maxRequestBodyBytes"`
+	Port                  int  `yaml:"port" json:"port"`
+	ReadTimeout           int  `yaml:"readTimeout" json:"readTimeout"`
+	Timeout               int  `yaml:"timeout" json:"timeout"`
+	TLS                   TLS  `yaml:"tls" json:"tls"`
+	WriteTimeout          int  `yaml:"writeTimeout" json:"writeTimeout"`
+}
+
 type Jaeger struct {
 	AgentHost string `yaml:"agentHost" json:"agentHost"`
 	AgentPort int    `yaml:"agentPort" json:"agentPort"`
@@ -112,16 +126,6 @@ type Logger struct {
 	Format string `yaml:"format" json:"format"`
 	IsSave bool   `yaml:"isSave" json:"isSave"`
 	Level  string `yaml:"level" json:"level"`
-}
-
-type HTTP struct {
-	HTTPSPort    int `yaml:"httpsPort" json:"httpsPort"`
-	IdleTimeout  int `yaml:"idleTimeout" json:"idleTimeout"`
-	Port         int `yaml:"port" json:"port"`
-	ReadTimeout  int `yaml:"readTimeout" json:"readTimeout"`
-	Timeout      int `yaml:"timeout" json:"timeout"`
-	TLS          TLS `yaml:"tls" json:"tls"`
-	WriteTimeout int `yaml:"writeTimeout" json:"writeTimeout"`
 }
 
 type Eab struct {

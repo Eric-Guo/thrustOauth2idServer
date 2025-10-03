@@ -25,6 +25,10 @@ http:
   idleTimeout: 60           # http idle timeout, unit(second)
   readTimeout: 30           # http read timeout, unit(second)
   writeTimeout: 30          # http write timeout, unit(second)
+  addRequestStartHeader: true # ensure X-Request-Start header is present on inbound requests
+  gzipEnabled: true         # compress responses when true using gzhttp
+  maxRequestBodyBytes: 0    # maximum allowed request body in bytes; 0 disables the limit
+  logRequests: true         # enable structured access logging
   tls:
     domains:
       - ""                  # list of domains for automatic tls certificates, empty disables tls
@@ -89,4 +93,3 @@ redis:
 jaeger:
   agentHost: "192.168.3.37"
   agentPort: 6831
-

@@ -20,6 +20,7 @@ import (
 
 	"thrust_oauth2id/internal/config"
 	"thrust_oauth2id/internal/routers"
+	"thrust_oauth2id/internal/server/httpmiddleware"
 )
 
 var _ app.IServer = (*httpServer)(nil)
@@ -135,6 +136,13 @@ func NewHTTPServer(cfg config.HTTP, opts ...HTTPOption) app.IServer {
 	if appHandler == nil {
 		appHandler = routers.NewRouter()
 	}
+
+	appHandler = httpmiddleware.Wrap(appHandler, httpmiddleware.Options{
+		AddRequestStartHeader: cfg.AddRequestStartHeader,
+		GzipEnabled:           cfg.GzipEnabled,
+		LogRequests:           cfg.LogRequests,
+		MaxRequestBodyBytes:   cfg.MaxRequestBodyBytes,
+	})
 
 	readTimeout := secondsToDuration(cfg.ReadTimeout)
 	writeTimeout := secondsToDuration(cfg.WriteTimeout)
