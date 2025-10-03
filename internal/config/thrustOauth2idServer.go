@@ -53,6 +53,7 @@ type Jaeger struct {
 
 type Proxy struct {
 	BadGatewayPage string `yaml:"badGatewayPage" json:"badGatewayPage"`
+	Cache          Cache  `yaml:"cache" json:"cache"`
 	Enabled        bool   `yaml:"enabled" json:"enabled"`
 	ForwardHeaders bool   `yaml:"forwardHeaders" json:"forwardHeaders"`
 	TargetURL      string `yaml:"targetURL" json:"targetURL"`
@@ -71,6 +72,13 @@ type App struct {
 	Name                 string  `yaml:"name" json:"name"`
 	TracingSamplingRate  float64 `yaml:"tracingSamplingRate" json:"tracingSamplingRate"`
 	Version              string  `yaml:"version" json:"version"`
+}
+
+type Cache struct {
+	CapacityBytes        int  `yaml:"capacityBytes" json:"capacityBytes"`
+	Enabled              bool `yaml:"enabled" json:"enabled"`
+	MaxItemSizeBytes     int  `yaml:"maxItemSizeBytes" json:"maxItemSizeBytes"`
+	MaxResponseBodyBytes int  `yaml:"maxResponseBodyBytes" json:"maxResponseBodyBytes"`
 }
 
 type Sqlite struct {

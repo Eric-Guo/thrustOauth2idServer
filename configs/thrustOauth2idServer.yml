@@ -39,6 +39,11 @@ proxy:
   targetURL: "http://127.0.0.1:3000" # upstream url to proxy requests to
   forwardHeaders: true        # preserve client-provided X-Forwarded-* headers
   badGatewayPage: "./public/502.html" # optional html page to serve on 502 errors
+  cache:
+    enabled: true             # enable in-memory caching for cacheable responses
+    capacityBytes: 67108864   # total bytes allocated for cached responses (64MB default)
+    maxItemSizeBytes: 1048576 # maximum per-response size (1MB default)
+    maxResponseBodyBytes: 1048576 # maximum body captured before skipping cache
 
 # rails cookie auth settings
 rails:
@@ -83,6 +88,5 @@ redis:
 jaeger:
   agentHost: "192.168.3.37"
   agentPort: 6831
-
 
 
