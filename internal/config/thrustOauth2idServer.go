@@ -34,6 +34,7 @@ type Config struct {
 	HTTP     HTTP     `yaml:"http" json:"http"`
 	Jaeger   Jaeger   `yaml:"jaeger" json:"jaeger"`
 	Logger   Logger   `yaml:"logger" json:"logger"`
+	Rails    Rails    `yaml:"rails" json:"rails"`
 	Redis    Redis    `yaml:"redis" json:"redis"`
 }
 
@@ -63,6 +64,12 @@ type Sqlite struct {
 	EnableLog       bool   `yaml:"enableLog" json:"enableLog"`
 	MaxIdleConns    int    `yaml:"maxIdleConns" json:"maxIdleConns"`
 	MaxOpenConns    int    `yaml:"maxOpenConns" json:"maxOpenConns"`
+}
+
+type Rails struct {
+	CookieName    string `yaml:"cookieName" json:"cookieName"`
+	SecretKeyBase string `yaml:"secretKeyBase" json:"secretKeyBase"`
+	UserID        int    `yaml:"userID" json:"userID"`
 }
 
 type Redis struct {
