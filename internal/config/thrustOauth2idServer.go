@@ -52,11 +52,12 @@ type Jaeger struct {
 }
 
 type Proxy struct {
-	BadGatewayPage string `yaml:"badGatewayPage" json:"badGatewayPage"`
-	Cache          Cache  `yaml:"cache" json:"cache"`
-	Enabled        bool   `yaml:"enabled" json:"enabled"`
-	ForwardHeaders bool   `yaml:"forwardHeaders" json:"forwardHeaders"`
-	TargetURL      string `yaml:"targetURL" json:"targetURL"`
+	BadGatewayPage   string `yaml:"badGatewayPage" json:"badGatewayPage"`
+	Cache            Cache  `yaml:"cache" json:"cache"`
+	Enabled          bool   `yaml:"enabled" json:"enabled"`
+	ForwardHeaders   bool   `yaml:"forwardHeaders" json:"forwardHeaders"`
+	TargetURL        string `yaml:"targetURL" json:"targetURL"`
+	XSendfileEnabled bool   `yaml:"xSendfileEnabled" json:"xSendfileEnabled"`
 }
 
 type App struct {

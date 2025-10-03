@@ -62,6 +62,11 @@ func registerReverseProxy(r *gin.Engine) {
 		}
 	}
 
+	handler = proxy.NewSendfileHandler(proxyCfg.XSendfileEnabled, handler)
+	if proxyCfg.XSendfileEnabled {
+		logger.Info("reverse proxy x-sendfile enabled")
+	}
+
 	ginHandler := func(c *gin.Context) {
 		handler.ServeHTTP(c.Writer, c.Request)
 		c.Abort()
