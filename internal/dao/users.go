@@ -3,7 +3,6 @@ package dao
 import (
 	"context"
 	"errors"
-	"time"
 
 	"golang.org/x/sync/singleflight"
 	"gorm.io/gorm"
@@ -370,10 +369,7 @@ func (d *usersDao) CreateByTx(ctx context.Context, tx *gorm.DB, table *model.Use
 
 // DeleteByTx delete a record by id in the database using the provided transaction
 func (d *usersDao) DeleteByTx(ctx context.Context, tx *gorm.DB, id uint64) error {
-	update := map[string]interface{}{
-		"deleted_at": time.Now(),
-	}
-	err := tx.WithContext(ctx).Model(&model.Users{}).Where("id = ?", id).Updates(update).Error
+	err := tx.WithContext(ctx).Where("id = ?", id).Delete(&model.Users{}).Error
 	if err != nil {
 		return err
 	}

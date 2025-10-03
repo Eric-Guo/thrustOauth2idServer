@@ -1,12 +1,19 @@
 package model
 
 import (
-	"github.com/go-dev-frame/sponge/pkg/sgorm"
 	"time"
 )
 
+// BaseModel a base model that includes the ID, CreatedAt, and UpdatedAt fields
+// remove deleted_at from sponge/pkg/sgorm/base_model.go
+type BaseModel struct {
+	ID        uint64    `gorm:"primary_key" json:"id"`
+	CreatedAt time.Time `gorm:"column:created_at" json:"createdAt"`
+	UpdatedAt time.Time `gorm:"column:updated_at" json:"updatedAt"`
+}
+
 type Users struct {
-	sgorm.Model `gorm:"embedded"` // embed id and time
+	BaseModel `gorm:"embedded"` // embed id and time
 
 	Email               string    `gorm:"column:email;type:varchar(100);not null" json:"email"`
 	EncryptedPassword   string    `gorm:"column:encrypted_password;type:varchar(100);not null" json:"encryptedPassword"`
@@ -35,7 +42,6 @@ var UsersColumnNames = map[string]bool{
 	"id":                     true,
 	"created_at":             true,
 	"updated_at":             true,
-	"deleted_at":             true,
 	"email":                  true,
 	"encrypted_password":     true,
 	"reset_password_token":   true,
