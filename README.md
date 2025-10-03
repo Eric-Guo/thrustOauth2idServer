@@ -1,3 +1,5 @@
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Eric-Guo/thrustOauth2idServer)
+
 # thrustOauth2idServer (http, monolith)
 
 ## Web 生成参数
