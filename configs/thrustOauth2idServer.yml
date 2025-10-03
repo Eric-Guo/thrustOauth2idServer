@@ -34,6 +34,12 @@ http:
       kid: ""               # external account binding key identifier
       hmacKey: ""           # base64url encoded external account binding hmac key
 
+proxy:
+  enabled: true             # when true, proxy unmatched requests to targetURL
+  targetURL: "http://127.0.0.1:3000" # upstream url to proxy requests to
+  forwardHeaders: true        # preserve client-provided X-Forwarded-* headers
+  badGatewayPage: "./public/502.html" # optional html page to serve on 502 errors
+
 # rails cookie auth settings
 rails:
   secretKeyBase: "change-me"      # run rails credentials:show to get secret_key_base
@@ -77,7 +83,6 @@ redis:
 jaeger:
   agentHost: "192.168.3.37"
   agentPort: 6831
-
 
 
 

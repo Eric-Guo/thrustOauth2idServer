@@ -34,6 +34,7 @@ type Config struct {
 	HTTP     HTTP     `yaml:"http" json:"http"`
 	Jaeger   Jaeger   `yaml:"jaeger" json:"jaeger"`
 	Logger   Logger   `yaml:"logger" json:"logger"`
+	Proxy    Proxy    `yaml:"proxy" json:"proxy"`
 	Rails    Rails    `yaml:"rails" json:"rails"`
 	Redis    Redis    `yaml:"redis" json:"redis"`
 }
@@ -48,6 +49,13 @@ type TLS struct {
 type Jaeger struct {
 	AgentHost string `yaml:"agentHost" json:"agentHost"`
 	AgentPort int    `yaml:"agentPort" json:"agentPort"`
+}
+
+type Proxy struct {
+	BadGatewayPage string `yaml:"badGatewayPage" json:"badGatewayPage"`
+	Enabled        bool   `yaml:"enabled" json:"enabled"`
+	ForwardHeaders bool   `yaml:"forwardHeaders" json:"forwardHeaders"`
+	TargetURL      string `yaml:"targetURL" json:"targetURL"`
 }
 
 type App struct {

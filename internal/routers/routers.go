@@ -112,6 +112,8 @@ func NewRouter() *gin.Engine {
 	// example:
 	//    registerRouters(r, "/api/v2", apiV2RouteFns, middleware.Auth())
 
+	registerReverseProxy(r)
+
 	return r
 }
 
