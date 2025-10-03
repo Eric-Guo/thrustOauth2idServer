@@ -22,4 +22,4 @@ dist/
 *.iws
 
 cmd/thrustOauth2idServer/thrustOauth2idServer
-
+thrustOauth2idServer.sublime-workspace

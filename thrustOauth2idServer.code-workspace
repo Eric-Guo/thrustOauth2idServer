@@ -1,0 +1,21 @@
+{
+  "folders": [
+    {
+      "path": "."
+    },
+    {
+      "path": "../oss/sponge"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/.tmp": true,
+      "**/.github": true,
+      "cmd/thrustOauth2idServer/__debug_bin*": true,
+      "sponge_user_server.sublime-project": true,
+      "sponge_user_server.sublime-workspace": true,
+      "cmd/sponge/server/static": true,      
+      "cmd/thrustOauth2idServer/thrustOauth2idServer": true
+    }
+  }
+}
