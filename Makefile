@@ -42,10 +42,10 @@ docs:
 
 
 .PHONY: build
-# Build thrustOauth2idServer for linux amd64 binary
+# Build thrustOauth2idServer for amd64 binary
 build:
-	@echo "building 'thrustOauth2idServer', linux binary file will output to 'cmd/thrustOauth2idServer'"
-	@cd cmd/thrustOauth2idServer && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build
+	@echo "building 'thrustOauth2idServer', binary file will output to 'cmd/thrustOauth2idServer'"
+	@cd cmd/thrustOauth2idServer && CGO_ENABLED=0 go build
 
 
 .PHONY: run
