@@ -54,6 +54,17 @@ func CacheableResponseFromBuffer(b []byte) (CacheableResponse, error) {
 func (c *CacheableResponse) ToBuffer() ([]byte, error) {
 	c.Body = c.stasher.Body()
 
+	headerForStorage := cloneHeader(c.HttpHeader)
+	if cacheable, _ := c.CacheStatus(); cacheable {
+		headerForStorage.Del("Set-Cookie")
+	}
+
+	originalHeader := c.HttpHeader
+	c.HttpHeader = headerForStorage
+	defer func() {
+		c.HttpHeader = originalHeader
+	}()
+
 	var b bytes.Buffer
 	encoder := gob.NewEncoder(&b)
 	err := encoder.Encode(c)
@@ -77,7 +88,6 @@ func (c *CacheableResponse) Write(bytes []byte) (int, error) {
 // WriteHeader implements http.ResponseWriter.
 func (c *CacheableResponse) WriteHeader(statusCode int) {
 	c.StatusCode = statusCode
-	c.scrubHeaders()
 	c.copyHeaders(c.responseWriter, false, c.StatusCode)
 	c.headersWritten = true
 }
@@ -167,12 +177,14 @@ func (c *CacheableResponse) copyHeaders(w http.ResponseWriter, wasHit bool, stat
 	w.WriteHeader(statusCode)
 }
 
-func (c *CacheableResponse) scrubHeaders() {
-	cacheable, _ := c.CacheStatus()
-
-	if cacheable {
-		c.HttpHeader.Del("Set-Cookie")
+func cloneHeader(src http.Header) http.Header {
+	dst := make(http.Header, len(src))
+	for key, values := range src {
+		copied := make([]string, len(values))
+		copy(copied, values)
+		dst[key] = copied
 	}
+	return dst
 }
 
 // stashingWriter mirrors output to both the downstream writer and an in-memory buffer when size permits.
