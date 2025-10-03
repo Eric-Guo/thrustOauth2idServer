@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: thrust-oauth-2id-server-svc
+  namespace: oauth-2id-thruster
+spec:
+  selector:
+    app: thrust-oauth-2id-server
+  type: ClusterIP
+  ports:
+    - name: thrust-oauth-2id-server-svc-http-port
+      port: 8080
+      targetPort: 8080
+
