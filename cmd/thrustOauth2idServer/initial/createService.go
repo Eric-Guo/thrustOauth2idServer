@@ -1,8 +1,6 @@
 package initial
 
 import (
-	"strconv"
-
 	"thrust_oauth2id/internal/config"
 	"thrust_oauth2id/internal/server"
 
@@ -15,8 +13,7 @@ func CreateServices() []app.IServer {
 	var servers []app.IServer
 
 	// create a http service
-	httpAddr := ":" + strconv.Itoa(cfg.HTTP.Port)
-	httpServer := server.NewHTTPServer(httpAddr,
+	httpServer := server.NewHTTPServer(cfg.HTTP,
 		server.WithHTTPIsProd(cfg.App.Env == "prod"),
 	)
 	servers = append(servers, httpServer)

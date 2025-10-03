@@ -38,6 +38,13 @@ type Config struct {
 	Redis    Redis    `yaml:"redis" json:"redis"`
 }
 
+type TLS struct {
+	AcmeDirectory string   `yaml:"acmeDirectory" json:"acmeDirectory"`
+	Domains       []string `yaml:"domains" json:"domains"`
+	Eab           Eab      `yaml:"eab" json:"eab"`
+	StoragePath   string   `yaml:"storagePath" json:"storagePath"`
+}
+
 type Jaeger struct {
 	AgentHost string `yaml:"agentHost" json:"agentHost"`
 	AgentPort int    `yaml:"agentPort" json:"agentPort"`
@@ -91,6 +98,16 @@ type Logger struct {
 }
 
 type HTTP struct {
-	Port    int `yaml:"port" json:"port"`
-	Timeout int `yaml:"timeout" json:"timeout"`
+	HTTPSPort    int `yaml:"httpsPort" json:"httpsPort"`
+	IdleTimeout  int `yaml:"idleTimeout" json:"idleTimeout"`
+	Port         int `yaml:"port" json:"port"`
+	ReadTimeout  int `yaml:"readTimeout" json:"readTimeout"`
+	Timeout      int `yaml:"timeout" json:"timeout"`
+	TLS          TLS `yaml:"tls" json:"tls"`
+	WriteTimeout int `yaml:"writeTimeout" json:"writeTimeout"`
+}
+
+type Eab struct {
+	HmacKey string `yaml:"hmacKey" json:"hmacKey"`
+	Kid     string `yaml:"kid" json:"kid"`
 }
