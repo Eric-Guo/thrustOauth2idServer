@@ -23,7 +23,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "submit information to create users",
+                "description": "Creates a new users entity using the provided data in the request body.",
                 "consumes": [
                     "application/json"
                 ],
@@ -33,7 +33,7 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "create users",
+                "summary": "Create a new users",
                 "parameters": [
                     {
                         "description": "users information",
@@ -55,14 +55,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/users/list": {
+        "/api/v1/users/condition": {
             "post": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "list of userss by paging and conditions",
+                "description": "Returns a single users that matches the specified filter conditions.",
                 "consumes": [
                     "application/json"
                 ],
@@ -72,7 +72,134 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "list of userss by query parameters",
+                "summary": "Get a users by custom condition",
+                "parameters": [
+                    {
+                        "description": "query condition",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.Conditions"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.GetUsersByConditionReply"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/users/delete/ids": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes multiple users by a list of id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Batch delete users by ids",
+                "parameters": [
+                    {
+                        "description": "id array",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.DeleteUserssByIDsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.DeleteUserssByIDsReply"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/users/list": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns a paginated list of userss starting after a given last id, useful for cursor-based pagination.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get a paginated list of userss by last id",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "last id, default is MaxInt32",
+                        "name": "lastID",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "number per page",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "-id",
+                        "description": "sort by column name of table, and the ",
+                        "name": "sort",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.ListUserssReply"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns a paginated list of users based on query filters, including page number and size.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get a paginated list of userss by custom conditions",
                 "parameters": [
                     {
                         "description": "query parameters",
@@ -80,7 +207,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-dev-frame_sponge_internal_types.Params"
+                            "$ref": "#/definitions/types.Params"
                         }
                     }
                 ],
@@ -94,14 +221,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/users/{id}": {
-            "get": {
+        "/api/v1/users/list/ids": {
+            "post": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "get users detail by id",
+                "description": "Returns a list of users that match the list of id.",
                 "consumes": [
                     "application/json"
                 ],
@@ -111,7 +238,46 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "get users detail",
+                "summary": "Batch get users by ids",
+                "parameters": [
+                    {
+                        "description": "id array",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.ListUserssByIDsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.ListUserssByIDsReply"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/users/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Gets detailed information of a users specified by the given id in the path.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get a users by id",
                 "parameters": [
                     {
                         "type": "string",
@@ -136,7 +302,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "update users information by id",
+                "description": "Updates the specified users by given id in the path, support partial update.",
                 "consumes": [
                     "application/json"
                 ],
@@ -146,7 +312,7 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "update users",
+                "summary": "Update a users by id",
                 "parameters": [
                     {
                         "type": "string",
@@ -180,7 +346,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "delete users by id",
+                "description": "Deletes a existing users identified by the given id in the path.",
                 "consumes": [
                     "application/json"
                 ],
@@ -190,7 +356,7 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "delete users",
+                "summary": "Delete a users by id",
                 "parameters": [
                     {
                         "type": "string",
@@ -209,117 +375,10 @@ const docTemplate = `{
                     }
                 }
             }
-        },
-        "/codes": {
-            "get": {
-                "description": "Returns a list of all defined HTTP error codes and their descriptions",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "system"
-                ],
-                "summary": "list all error codes",
-                "responses": {
-                    "200": {
-                        "description": "List of error codes",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/errcode.ErrInfo"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/config": {
-            "get": {
-                "description": "Returns the current system configuration in JSON format. This includes all runtime configuration parameters.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "system"
-                ],
-                "summary": "get system configuration",
-                "responses": {
-                    "200": {
-                        "description": "Returns the complete system configuration",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/health": {
-            "get": {
-                "description": "Returns system health information including status and hostname",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "system"
-                ],
-                "summary": "check system health status",
-                "responses": {
-                    "200": {
-                        "description": "Returns health status information",
-                        "schema": {
-                            "$ref": "#/definitions/handlerfunc.CheckHealthReply"
-                        }
-                    }
-                }
-            }
-        },
-        "/ping": {
-            "get": {
-                "description": "Simple ping endpoint to check if server is responsive",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "system"
-                ],
-                "summary": "ping the server",
-                "responses": {
-                    "200": {
-                        "description": "Returns empty JSON object",
-                        "schema": {
-                            "$ref": "#/definitions/handlerfunc.PingReply"
-                        }
-                    }
-                }
-            }
         }
     },
     "definitions": {
-        "errcode.ErrInfo": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer"
-                },
-                "msg": {
-                    "type": "string"
-                }
-            }
-        },
-        "github_com_go-dev-frame_sponge_internal_types.Column": {
+        "types.Column": {
             "type": "object",
             "properties": {
                 "exp": {
@@ -339,43 +398,17 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-dev-frame_sponge_internal_types.Params": {
+        "types.Conditions": {
             "type": "object",
             "properties": {
                 "columns": {
-                    "description": "query conditions",
+                    "description": "columns info",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_go-dev-frame_sponge_internal_types.Column"
+                        "$ref": "#/definitions/types.Column"
                     }
-                },
-                "limit": {
-                    "description": "lines per page",
-                    "type": "integer"
-                },
-                "page": {
-                    "description": "page number, starting from page 0",
-                    "type": "integer"
-                },
-                "sort": {
-                    "description": "sorted fields, multi-column sorting separated by commas",
-                    "type": "string"
                 }
             }
-        },
-        "handlerfunc.CheckHealthReply": {
-            "type": "object",
-            "properties": {
-                "hostname": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlerfunc.PingReply": {
-            "type": "object"
         },
         "types.CreateUsersReply": {
             "type": "object",
@@ -403,36 +436,64 @@ const docTemplate = `{
         "types.CreateUsersRequest": {
             "type": "object",
             "properties": {
-                "age": {
-                    "description": "age",
+                "admin": {
                     "type": "integer"
                 },
-                "avatar": {
-                    "description": "avatar",
-                    "type": "string",
-                    "minLength": 5
+                "confirmationSentAt": {
+                    "type": "string"
+                },
+                "confirmationToken": {
+                    "type": "string"
+                },
+                "confirmedAt": {
+                    "type": "string"
+                },
+                "currentSignInAt": {
+                    "type": "string"
+                },
+                "currentSignInIP": {
+                    "type": "string"
                 },
                 "email": {
-                    "description": "email",
                     "type": "string"
                 },
-                "gender": {
-                    "description": "gender, 1:Male, 2:Female, other values:unknown",
-                    "type": "integer",
-                    "maximum": 2,
-                    "minimum": 0
-                },
-                "name": {
-                    "description": "username",
-                    "type": "string",
-                    "minLength": 2
-                },
-                "password": {
-                    "description": "password",
+                "encryptedPassword": {
                     "type": "string"
                 },
-                "phone": {
-                    "description": "phone number, e164 rules, e.g. +8612345678901",
+                "failedAttempts": {
+                    "type": "integer"
+                },
+                "lastSignInAt": {
+                    "type": "string"
+                },
+                "lastSignInIP": {
+                    "type": "string"
+                },
+                "lockedAt": {
+                    "type": "string"
+                },
+                "rememberCreatedAt": {
+                    "type": "string"
+                },
+                "rememberToken": {
+                    "type": "string"
+                },
+                "resetPasswordSentAt": {
+                    "type": "string"
+                },
+                "resetPasswordToken": {
+                    "type": "string"
+                },
+                "signInCount": {
+                    "type": "integer"
+                },
+                "unconfirmedEmail": {
+                    "type": "string"
+                },
+                "unlockToken": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }
@@ -445,7 +506,60 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "data": {
-                    "description": "return data"
+                    "description": "return data",
+                    "type": "object"
+                },
+                "msg": {
+                    "description": "return information description",
+                    "type": "string"
+                }
+            }
+        },
+        "types.DeleteUserssByIDsReply": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "return code",
+                    "type": "integer"
+                },
+                "data": {
+                    "description": "return data",
+                    "type": "object"
+                },
+                "msg": {
+                    "description": "return information description",
+                    "type": "string"
+                }
+            }
+        },
+        "types.DeleteUserssByIDsRequest": {
+            "type": "object",
+            "properties": {
+                "ids": {
+                    "description": "id list",
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "types.GetUsersByConditionReply": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "return code",
+                    "type": "integer"
+                },
+                "data": {
+                    "description": "return data",
+                    "type": "object",
+                    "properties": {
+                        "users": {
+                            "$ref": "#/definitions/types.UsersObjDetail"
+                        }
+                    }
                 },
                 "msg": {
                     "description": "return information description",
@@ -475,6 +589,44 @@ const docTemplate = `{
                 }
             }
         },
+        "types.ListUserssByIDsReply": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "return code",
+                    "type": "integer"
+                },
+                "data": {
+                    "description": "return data",
+                    "type": "object",
+                    "properties": {
+                        "userss": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/types.UsersObjDetail"
+                            }
+                        }
+                    }
+                },
+                "msg": {
+                    "description": "return information description",
+                    "type": "string"
+                }
+            }
+        },
+        "types.ListUserssByIDsRequest": {
+            "type": "object",
+            "properties": {
+                "ids": {
+                    "description": "id list",
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
         "types.ListUserssReply": {
             "type": "object",
             "properties": {
@@ -500,6 +652,30 @@ const docTemplate = `{
                 }
             }
         },
+        "types.Params": {
+            "type": "object",
+            "properties": {
+                "columns": {
+                    "description": "query conditions",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.Column"
+                    }
+                },
+                "limit": {
+                    "description": "lines per page",
+                    "type": "integer"
+                },
+                "page": {
+                    "description": "page number, starting from page 0",
+                    "type": "integer"
+                },
+                "sort": {
+                    "description": "sorted fields, multi-column sorting separated by commas",
+                    "type": "string"
+                }
+            }
+        },
         "types.UpdateUsersByIDReply": {
             "type": "object",
             "properties": {
@@ -508,7 +684,8 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "data": {
-                    "description": "return data"
+                    "description": "return data",
+                    "type": "object"
                 },
                 "msg": {
                     "description": "return information description",
@@ -519,36 +696,68 @@ const docTemplate = `{
         "types.UpdateUsersByIDRequest": {
             "type": "object",
             "properties": {
-                "age": {
-                    "description": "age",
+                "admin": {
                     "type": "integer"
                 },
-                "avatar": {
-                    "description": "avatar",
+                "confirmationSentAt": {
+                    "type": "string"
+                },
+                "confirmationToken": {
+                    "type": "string"
+                },
+                "confirmedAt": {
+                    "type": "string"
+                },
+                "currentSignInAt": {
+                    "type": "string"
+                },
+                "currentSignInIP": {
                     "type": "string"
                 },
                 "email": {
-                    "description": "email",
                     "type": "string"
                 },
-                "gender": {
-                    "description": "gender, 1:Male, 2:Female, other values:unknown",
+                "encryptedPassword": {
+                    "type": "string"
+                },
+                "failedAttempts": {
                     "type": "integer"
                 },
                 "id": {
-                    "description": "id",
+                    "description": "uint64 id",
                     "type": "integer"
                 },
-                "name": {
-                    "description": "username",
+                "lastSignInAt": {
                     "type": "string"
                 },
-                "password": {
-                    "description": "password",
+                "lastSignInIP": {
                     "type": "string"
                 },
-                "phone": {
-                    "description": "phone number",
+                "lockedAt": {
+                    "type": "string"
+                },
+                "rememberCreatedAt": {
+                    "type": "string"
+                },
+                "rememberToken": {
+                    "type": "string"
+                },
+                "resetPasswordSentAt": {
+                    "type": "string"
+                },
+                "resetPasswordToken": {
+                    "type": "string"
+                },
+                "signInCount": {
+                    "type": "integer"
+                },
+                "unconfirmedEmail": {
+                    "type": "string"
+                },
+                "unlockToken": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }
@@ -556,48 +765,74 @@ const docTemplate = `{
         "types.UsersObjDetail": {
             "type": "object",
             "properties": {
-                "age": {
-                    "description": "age",
+                "admin": {
                     "type": "integer"
                 },
-                "avatar": {
-                    "description": "avatar",
+                "confirmationSentAt": {
+                    "type": "string"
+                },
+                "confirmationToken": {
+                    "type": "string"
+                },
+                "confirmedAt": {
                     "type": "string"
                 },
                 "createdAt": {
-                    "description": "create time",
+                    "type": "string"
+                },
+                "currentSignInAt": {
+                    "type": "string"
+                },
+                "currentSignInIP": {
                     "type": "string"
                 },
                 "email": {
-                    "description": "email",
                     "type": "string"
                 },
-                "gender": {
-                    "description": "gender, 1:Male, 2:Female, other values:unknown",
+                "encryptedPassword": {
+                    "type": "string"
+                },
+                "failedAttempts": {
                     "type": "integer"
                 },
                 "id": {
-                    "description": "id",
+                    "description": "convert to uint64 id",
                     "type": "integer"
                 },
-                "loginAt": {
-                    "description": "login timestamp",
-                    "type": "integer"
-                },
-                "name": {
-                    "description": "username",
+                "lastSignInAt": {
                     "type": "string"
                 },
-                "phone": {
-                    "description": "phone number",
+                "lastSignInIP": {
                     "type": "string"
                 },
-                "status": {
-                    "description": "account status, 1:inactive, 2:activated, 3:blocked",
+                "lockedAt": {
+                    "type": "string"
+                },
+                "rememberCreatedAt": {
+                    "type": "string"
+                },
+                "rememberToken": {
+                    "type": "string"
+                },
+                "resetPasswordSentAt": {
+                    "type": "string"
+                },
+                "resetPasswordToken": {
+                    "type": "string"
+                },
+                "signInCount": {
                     "type": "integer"
+                },
+                "unconfirmedEmail": {
+                    "type": "string"
+                },
+                "unlockToken": {
+                    "type": "string"
                 },
                 "updatedAt": {
-                    "description": "update time",
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }

@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/go-dev-frame/sponge/pkg/copier"
-	"github.com/go-dev-frame/sponge/pkg/sgorm/query"
-	"github.com/go-dev-frame/sponge/pkg/httpcli"
 	"github.com/go-dev-frame/sponge/pkg/gotest"
+	"github.com/go-dev-frame/sponge/pkg/httpcli"
+	"github.com/go-dev-frame/sponge/pkg/sgorm/query"
 	"github.com/go-dev-frame/sponge/pkg/utils"
 
 	"thrust_oauth2id/internal/cache"
@@ -127,7 +127,7 @@ func Test_usersHandler_Create(t *testing.T) {
 	}
 
 	t.Logf("%+v", result)
-	
+
 }
 
 func Test_usersHandler_DeleteByID(t *testing.T) {
@@ -235,9 +235,9 @@ func Test_usersHandler_List(t *testing.T) {
 
 	result := &httpcli.StdResult{}
 	err := httpcli.Post(result, h.GetRequestURL("List"), &types.ListUserssRequest{query.Params{
-		Page: 0,
+		Page:  0,
 		Limit: 10,
-		Sort: "ignore count", // ignore test count
+		Sort:  "ignore count", // ignore test count
 	}})
 	if err != nil {
 		t.Fatal(err)
@@ -252,9 +252,9 @@ func Test_usersHandler_List(t *testing.T) {
 
 	// get error test
 	err = httpcli.Post(result, h.GetRequestURL("List"), &types.ListUserssRequest{query.Params{
-		Page: 0,
+		Page:  0,
 		Limit: 10,
-		Sort: "unknown-column",
+		Sort:  "unknown-column",
 	}})
 	assert.Error(t, err)
 }

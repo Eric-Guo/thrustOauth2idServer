@@ -57,5 +57,3 @@ var UsersColumnNames = map[string]bool{
 	"username":               true,
 	"remember_token":         true,
 }
-
-

@@ -238,7 +238,7 @@ func (h *usersHandler) List(c *gin.Context) {
 
 	response.Success(c, gin.H{
 		"userss": data,
-		"total":        total,
+		"total":  total,
 	})
 }
 

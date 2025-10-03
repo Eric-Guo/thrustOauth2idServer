@@ -7,8 +7,8 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/go-dev-frame/sponge/pkg/sgorm/query"
 	"github.com/go-dev-frame/sponge/pkg/gotest"
+	"github.com/go-dev-frame/sponge/pkg/sgorm/query"
 	"github.com/go-dev-frame/sponge/pkg/utils"
 
 	"thrust_oauth2id/internal/cache"
@@ -96,7 +96,7 @@ func Test_usersDao_UpdateByID(t *testing.T) {
 	// zero id error
 	err = d.IDao.(UsersDao).UpdateByID(d.Ctx, &model.Users{})
 	assert.Error(t, err)
-	
+
 }
 
 func Test_usersDao_GetByID(t *testing.T) {
@@ -147,9 +147,9 @@ func Test_usersDao_GetByColumns(t *testing.T) {
 	d.SQLMock.ExpectQuery("SELECT .*").WillReturnRows(rows)
 
 	_, _, err := d.IDao.(UsersDao).GetByColumns(d.Ctx, &query.Params{
-		Page: 0,
+		Page:  0,
 		Limit: 10,
-		Sort: "ignore count", // ignore test count(*)
+		Sort:  "ignore count", // ignore test count(*)
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -162,7 +162,7 @@ func Test_usersDao_GetByColumns(t *testing.T) {
 
 	// err test
 	_, _, err = d.IDao.(UsersDao).GetByColumns(d.Ctx, &query.Params{
-		Page: 0,
+		Page:  0,
 		Limit: 10,
 		Columns: []query.Column{
 			{
