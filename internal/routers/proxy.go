@@ -1,6 +1,7 @@
 package routers
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 
@@ -13,15 +14,25 @@ import (
 )
 
 func registerReverseProxy(r *gin.Engine) {
-	proxyCfg := config.Get().Proxy
+	cfg := config.Get()
+	proxyCfg := cfg.Proxy
 	if !proxyCfg.Enabled {
 		return
 	}
 
-	targetURL, err := url.Parse(proxyCfg.TargetURL)
+	targetURLStr := proxyCfg.TargetURL
+	if targetURLStr == "" && cfg.Upstream.Enabled {
+		port := cfg.Upstream.TargetPort
+		if port == 0 {
+			port = 3000
+		}
+		targetURLStr = fmt.Sprintf("http://127.0.0.1:%d", port)
+	}
+
+	targetURL, err := url.Parse(targetURLStr)
 	if err != nil {
 		targetErr := err
-		logger.Fatal("invalid proxy target url", logger.String("target", proxyCfg.TargetURL), logger.Err(targetErr))
+		logger.Fatal("invalid proxy target url", logger.String("target", targetURLStr), logger.Err(targetErr))
 		return
 	}
 

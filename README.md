@@ -88,6 +88,22 @@ make run
 
 在浏览器访问 [http://localhost:8080/swagger/index.html](http://localhost:8080/swagger/index.html)，测试 HTTP API。
 
+### 4. 启动 Rails 上游应用
+
+1. 编辑 `configs/thrustOauth2idServer.yml`，将 `upstream.enabled` 设为 `true`，并配置 `command`、`args`、`workingDirectory`、`targetPort` 等字段，例如：
+
+   ```yaml
+   upstream:
+     enabled: true
+     workingDirectory: "/path/to/rails/app"
+     command: "bin/rails"
+     args:
+       - "server"
+     targetPort: 3000
+   ```
+
+2. 启动服务 `make run Config=configs/thrustOauth2idServer.yml`，Thruster 会在启动 HTTP 代理的同时拉起 Rails/Puma 进程，并通过 `PORT` 环境变量传递 `targetPort`。
+
 ## 开发指南
 
 点击查看详细的 [**开发指南**](https://go-sponge.com/zh/guide/web/based-on-sql.html)。
@@ -97,4 +113,3 @@ make run
 - [裸机部署](https://go-sponge.com/zh/deployment/binary.html)
 - [Docker 部署](https://go-sponge.com/zh/deployment/docker.html)
 - [K8S 部署](https://go-sponge.com/zh/deployment/kubernetes.html)
-

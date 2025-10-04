@@ -37,6 +37,7 @@ type Config struct {
 	Proxy    Proxy    `yaml:"proxy" json:"proxy"`
 	Rails    Rails    `yaml:"rails" json:"rails"`
 	Redis    Redis    `yaml:"redis" json:"redis"`
+	Upstream Upstream `yaml:"upstream" json:"upstream"`
 }
 
 type TLS struct {
@@ -72,6 +73,16 @@ type Proxy struct {
 	ForwardHeaders   bool   `yaml:"forwardHeaders" json:"forwardHeaders"`
 	TargetURL        string `yaml:"targetURL" json:"targetURL"`
 	XSendfileEnabled bool   `yaml:"xSendfileEnabled" json:"xSendfileEnabled"`
+}
+
+type Upstream struct {
+	Args             []string          `yaml:"args" json:"args"`
+	Command          string            `yaml:"command" json:"command"`
+	Enabled          bool              `yaml:"enabled" json:"enabled"`
+	Env              map[string]string `yaml:"env" json:"env"`
+	StopSignal       string            `yaml:"stopSignal" json:"stopSignal"`
+	TargetPort       int               `yaml:"targetPort" json:"targetPort"`
+	WorkingDirectory string            `yaml:"workingDirectory" json:"workingDirectory"`
 }
 
 type App struct {
