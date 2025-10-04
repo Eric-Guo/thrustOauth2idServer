@@ -23,6 +23,20 @@ func (v *Variant) SetResponseHeader(header http.Header) {
 	v.headerNames = v.parseVaryHeader(header)
 }
 
+// HeaderNames returns the list of headers that influence the variant cache key.
+func (v *Variant) HeaderNames() []string {
+	return append([]string(nil), v.headerNames...)
+}
+
+// ApplyHeaderNames seeds the variant with a set of cached header names.
+func (v *Variant) ApplyHeaderNames(names []string) {
+	if len(names) == 0 {
+		v.headerNames = nil
+		return
+	}
+	v.headerNames = append([]string(nil), names...)
+}
+
 // CacheKey computes the stable cache key for the request variant.
 func (v *Variant) CacheKey() CacheKey {
 	hash := fnv.New64()

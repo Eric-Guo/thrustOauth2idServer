@@ -2,6 +2,7 @@ package proxycache
 
 import (
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/go-dev-frame/sponge/pkg/logger"
@@ -21,6 +22,9 @@ type CacheHandler struct {
 	cache       Cache
 	next        http.Handler
 	maxBodySize int
+
+	varyIndexMu sync.RWMutex
+	varyIndex   map[CacheKey][]string
 }
 
 // NewCacheHandler constructs a caching handler in front of the provided next handler.
@@ -29,18 +33,21 @@ func NewCacheHandler(cache Cache, maxBodySize int, next http.Handler) *CacheHand
 		cache:       cache,
 		next:        next,
 		maxBodySize: maxBodySize,
+		varyIndex:   make(map[CacheKey][]string),
 	}
 }
 
 // ServeHTTP attempts to serve a cached response, falling back to the next handler.
 func (h *CacheHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	variant := NewVariant(r)
-	response, key, found := h.fetchFromCache(r, variant)
+	baseKey := variant.CacheKey()
+	response, key, found := h.fetchFromCache(r, variant, baseKey)
 
 	if found {
 		variant.SetResponseHeader(response.HttpHeader)
+		h.rememberVariantHeaders(baseKey, variant.HeaderNames())
 		if !variant.Matches(response.VariantHeader) {
-			response, key, found = h.fetchFromCache(r, variant)
+			response, key, found = h.fetchFromCache(r, variant, baseKey)
 		}
 	}
 
@@ -62,6 +69,8 @@ func (h *CacheHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	cacheable, expires := cr.CacheStatus()
 	if cacheable {
 		variant.SetResponseHeader(cr.HttpHeader)
+		h.rememberVariantHeaders(baseKey, variant.HeaderNames())
+		key = variant.CacheKey()
 		cr.VariantHeader = variant.VariantHeader()
 
 		encoded, err := cr.ToBuffer()
@@ -76,21 +85,63 @@ func (h *CacheHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // Private
 
-func (h *CacheHandler) fetchFromCache(r *http.Request, variant *Variant) (CacheableResponse, CacheKey, bool) {
+func (h *CacheHandler) fetchFromCache(r *http.Request, variant *Variant, baseKey CacheKey) (CacheableResponse, CacheKey, bool) {
+	if headerNames := h.loadVariantHeaders(baseKey); len(headerNames) > 0 {
+		variant.ApplyHeaderNames(headerNames)
+	}
+
 	key := variant.CacheKey()
-	cached, found := h.cache.Get(key)
-
-	if found {
-		response, err := CacheableResponseFromBuffer(cached)
-		if err != nil {
-			logger.Error("proxy cache: decode cached response failed", logger.String("path", r.URL.Path), logger.Err(err))
-			return CacheableResponse{}, key, false
-		}
-
+	if response, found := h.lookupCacheEntry(r, key); found {
 		return response, key, true
 	}
 
+	// Fallback for legacy entries stored under the base key without variant headers.
+	if key != baseKey {
+		if response, found := h.lookupCacheEntry(r, baseKey); found {
+			return response, baseKey, true
+		}
+	}
+
 	return CacheableResponse{}, key, false
+}
+
+func (h *CacheHandler) lookupCacheEntry(r *http.Request, key CacheKey) (CacheableResponse, bool) {
+	cached, found := h.cache.Get(key)
+	if !found {
+		return CacheableResponse{}, false
+	}
+
+	response, err := CacheableResponseFromBuffer(cached)
+	if err != nil {
+		logger.Error("proxy cache: decode cached response failed", logger.String("path", r.URL.Path), logger.Err(err))
+		return CacheableResponse{}, false
+	}
+
+	return response, true
+}
+
+func (h *CacheHandler) rememberVariantHeaders(baseKey CacheKey, headers []string) {
+	h.varyIndexMu.Lock()
+	defer h.varyIndexMu.Unlock()
+
+	if len(headers) == 0 {
+		delete(h.varyIndex, baseKey)
+		return
+	}
+
+	copyHeaders := append([]string(nil), headers...)
+	h.varyIndex[baseKey] = copyHeaders
+}
+
+func (h *CacheHandler) loadVariantHeaders(baseKey CacheKey) []string {
+	h.varyIndexMu.RLock()
+	defer h.varyIndexMu.RUnlock()
+
+	if headers, ok := h.varyIndex[baseKey]; ok {
+		return append([]string(nil), headers...)
+	}
+
+	return nil
 }
 
 func (h *CacheHandler) shouldCacheRequest(r *http.Request) bool {
