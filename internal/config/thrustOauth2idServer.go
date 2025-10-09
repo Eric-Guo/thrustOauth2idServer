@@ -66,6 +66,17 @@ type Jaeger struct {
 	AgentPort int    `yaml:"agentPort" json:"agentPort"`
 }
 
+type Upstream struct {
+	Args             []string `yaml:"args" json:"args"`
+	Command          string   `yaml:"command" json:"command"`
+	Enabled          bool     `yaml:"enabled" json:"enabled"`
+	Env              Env      `yaml:"env" json:"env"`
+	StopSignal       string   `yaml:"stopSignal" json:"stopSignal"`
+	TargetBindSocket string   `yaml:"targetBindSocket" json:"targetBindSocket"`
+	TargetPort       int      `yaml:"targetPort" json:"targetPort"`
+	WorkingDirectory string   `yaml:"workingDirectory" json:"workingDirectory"`
+}
+
 type Proxy struct {
 	BadGatewayPage   string `yaml:"badGatewayPage" json:"badGatewayPage"`
 	Cache            Cache  `yaml:"cache" json:"cache"`
@@ -73,16 +84,6 @@ type Proxy struct {
 	ForwardHeaders   bool   `yaml:"forwardHeaders" json:"forwardHeaders"`
 	TargetURL        string `yaml:"targetURL" json:"targetURL"`
 	XSendfileEnabled bool   `yaml:"xSendfileEnabled" json:"xSendfileEnabled"`
-}
-
-type Upstream struct {
-	Args             []string          `yaml:"args" json:"args"`
-	Command          string            `yaml:"command" json:"command"`
-	Enabled          bool              `yaml:"enabled" json:"enabled"`
-	Env              map[string]string `yaml:"env" json:"env"`
-	StopSignal       string            `yaml:"stopSignal" json:"stopSignal"`
-	TargetPort       int               `yaml:"targetPort" json:"targetPort"`
-	WorkingDirectory string            `yaml:"workingDirectory" json:"workingDirectory"`
 }
 
 type App struct {
@@ -143,3 +144,5 @@ type Eab struct {
 	HmacKey string `yaml:"hmacKey" json:"hmacKey"`
 	Kid     string `yaml:"kid" json:"kid"`
 }
+
+type Env map[string]string

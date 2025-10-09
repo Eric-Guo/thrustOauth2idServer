@@ -22,11 +22,17 @@ func registerReverseProxy(r *gin.Engine) {
 
 	targetURLStr := proxyCfg.TargetURL
 	if targetURLStr == "" && cfg.Upstream.Enabled {
-		port := cfg.Upstream.TargetPort
-		if port == 0 {
-			port = 3000
-		}
-		targetURLStr = fmt.Sprintf("http://127.0.0.1:%d", port)
+        if cfg.Upstream.TargetBindSocket != "" {
+            // When a UNIX socket is configured, we still need a valid HTTP URL
+            // for request rewriting; the transport will dial the socket.
+            targetURLStr = "http://localhost"
+        } else {
+            port := cfg.Upstream.TargetPort
+            if port == 0 {
+                port = 3000
+            }
+            targetURLStr = fmt.Sprintf("http://127.0.0.1:%d", port)
+        }
 	}
 
 	targetURL, err := url.Parse(targetURLStr)
@@ -36,10 +42,18 @@ func registerReverseProxy(r *gin.Engine) {
 		return
 	}
 
+	// Only use UnixSocketPath when upstream is enabled and we're using upstream configuration
+	// (i.e., no custom proxy targetURL is set)
+	var unixSocketPath string
+	if proxyCfg.TargetURL == "" && cfg.Upstream.Enabled && cfg.Upstream.TargetBindSocket != "" {
+		unixSocketPath = cfg.Upstream.TargetBindSocket
+	}
+
 	reverseProxy := proxy.NewReverseProxy(proxy.Options{
 		TargetURL:      targetURL,
 		BadGatewayPage: proxyCfg.BadGatewayPage,
 		ForwardHeaders: proxyCfg.ForwardHeaders,
+		UnixSocketPath: unixSocketPath,
 	})
 
 	logger.Info("reverse proxy enabled", logger.String("target", targetURL.String()), logger.Bool("forward_headers", proxyCfg.ForwardHeaders), logger.String("bad_gateway_page", proxyCfg.BadGatewayPage))

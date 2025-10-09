@@ -34,12 +34,18 @@ func NewServer(cfg config.Upstream) *Server {
 
 // Start launches the upstream command and blocks until it exits.
 func (s *Server) Start() error {
-	if s.cfg.Command == "" {
+	if s.cfg.Enabled && s.cfg.Command == "" {
 		return errors.New("upstream command is empty")
 	}
 
 	cmd := exec.Command(s.cfg.Command, s.cfg.Args...)
-	if s.cfg.WorkingDirectory != "" {
+	if s.cfg.Enabled && s.cfg.WorkingDirectory != "" {
+		if _, err := os.Stat(s.cfg.WorkingDirectory); err != nil {
+			if os.IsNotExist(err) {
+				return fmt.Errorf("working directory does not exist: %s", s.cfg.WorkingDirectory)
+			}
+			return fmt.Errorf("cannot access working directory %s: %w", s.cfg.WorkingDirectory, err)
+		}
 		cmd.Dir = s.cfg.WorkingDirectory
 	}
 
@@ -162,7 +168,8 @@ func (s *Server) buildEnv() []string {
 		}
 	}
 
-	if s.cfg.TargetPort > 0 {
+	// Only export PORT when not using a UNIX socket binding to avoid conflicts.
+	if s.cfg.TargetBindSocket == "" && s.cfg.TargetPort > 0 {
 		merged["PORT"] = strconv.Itoa(s.cfg.TargetPort)
 	}
 
