@@ -145,4 +145,7 @@ type Eab struct {
 	Kid     string `yaml:"kid" json:"kid"`
 }
 
+// Changing Env from map[string]string to a struct means only the fields compiled into that struct will ever be forwarded to the upstream process.
+// Any additional environment variable a deployer adds to the YAML (for example RAILS_LOG_TO_STDOUT or DATABASE_URL) will now be ignored by conf.Parse, so buildEnv() never sees it. Previously this worked without touching the Go code, which is critical for configuration.
+// This blocks operators from adding new env vars unless they rebuild the binary, so we need to keep Env as a map (or another dynamic representation).
 type Env map[string]string
