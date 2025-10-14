@@ -42,10 +42,10 @@ func registerReverseProxy(r *gin.Engine) {
 		return
 	}
 
-	// Only use UnixSocketPath when upstream is enabled and we're using upstream configuration
-	// (i.e., no custom proxy targetURL is set)
+	// Prefer dialing via UNIX socket when the upstream advertises one. This avoids
+	// TCP self-loops when the HTTP server and upstream share a port.
 	var unixSocketPath string
-	if proxyCfg.TargetURL == "" && cfg.Upstream.Enabled && cfg.Upstream.TargetBindSocket != "" {
+	if cfg.Upstream.Enabled && cfg.Upstream.TargetBindSocket != "" {
 		unixSocketPath = cfg.Upstream.TargetBindSocket
 	}
 
@@ -56,7 +56,16 @@ func registerReverseProxy(r *gin.Engine) {
 		UnixSocketPath: unixSocketPath,
 	})
 
-	logger.Info("reverse proxy enabled", logger.String("target", targetURL.String()), logger.Bool("forward_headers", proxyCfg.ForwardHeaders), logger.String("bad_gateway_page", proxyCfg.BadGatewayPage))
+	loggerFields := []logger.Field{
+		logger.String("target", targetURL.String()),
+		logger.Bool("forward_headers", proxyCfg.ForwardHeaders),
+		logger.String("bad_gateway_page", proxyCfg.BadGatewayPage),
+	}
+	if unixSocketPath != "" {
+		loggerFields = append(loggerFields, logger.String("unix_socket", unixSocketPath))
+	}
+
+	logger.Info("reverse proxy enabled", loggerFields...)
 
 	var handler http.Handler = reverseProxy
 
