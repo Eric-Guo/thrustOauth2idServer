@@ -52,12 +52,12 @@ proxy:
 
 upstream:
   enabled: false              # when true, launch and supervise a local upstream command
-  command: "bin/rails"        # executable to run for the upstream application
+  command: "bin/rails"        # executable to run for the upstream Rails application
   args:                       # optional arguments passed to the command
     - "server"
   workingDirectory: ""        # change to rails app directory before starting the command
-  targetPort: 3000            # port the upstream process should bind to; exported as PORT
-  targetBindSocket: "unix:///Users/guochunzhong/git/sso/oauth2id/tmp/sockets/puma.sock" # socket the upstream process should bind to
+  targetPort: 3000            # port the upstream process should bind to; exported as PORT, if targetBindSocket set, will using socket first
+  targetBindSocket: "unix:///Users/guochunzhong/git/sso/oauth2id/tmp/sockets/puma.sock" # full path to the socket the upstream process should bind to
   stopSignal: "SIGTERM"       # signal sent when shutting down; defaults to SIGTERM if empty
   env:                        # additional environment variables passed to the upstream process
     RAILS_ENV: "development"
