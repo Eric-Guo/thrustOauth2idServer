@@ -1,7 +1,7 @@
 #!/bin/bash
 
 serviceName="thrustOauth2idServer"
-cmdStr="./${serviceName} -c configs/${serviceName}.yml"
+cmdStr="./${serviceName} -c configs/${serviceName}_cc.yml"
 
 chmod +x ./${serviceName}
 

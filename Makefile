@@ -4,6 +4,30 @@ PROJECT_NAME := "thrust_oauth2id"
 PKG := "$(PROJECT_NAME)"
 PKG_LIST := $(shell go list ${PKG}/... | grep -v /vendor/ | grep -v /api/ | grep -v /cmd/)
 
+SERVICE_NAME := thrustOauth2idServer
+TARGET_OS ?= linux
+TARGET_ARCH ?= arm64
+REMOTE_HOST ?= ec2-user@ericsg
+REMOTE_TMP ?= /tmp
+CGO_ENABLED ?= 1
+USE_DOCKER ?= 1
+DEFAULT_DOCKER_IMAGE := swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/golang:1.25.1-bookworm
+DEFAULT_DOCKER_IMAGE_ARM64 := docker.io/library/golang:1.25.1-bookworm
+ifeq ($(TARGET_ARCH),arm64)
+DEFAULT_DOCKER_IMAGE := $(DEFAULT_DOCKER_IMAGE_ARM64)
+endif
+DOCKER_IMAGE ?= $(DEFAULT_DOCKER_IMAGE)
+DOCKER_PLATFORM := $(TARGET_OS)/$(TARGET_ARCH)
+HOST_UID := $(shell id -u)
+HOST_GID := $(shell id -g)
+
+SPONGE_LOCAL_PATH := $(strip $(shell awk '/replace github.com\/go-dev-frame\/sponge =>/{print $$4}' go.mod))
+DOCKER_EXTRA_VOLUMES :=
+ifneq ($(SPONGE_LOCAL_PATH),)
+ifneq ($(wildcard $(SPONGE_LOCAL_PATH)),)
+DOCKER_EXTRA_VOLUMES += -v $(SPONGE_LOCAL_PATH):$(SPONGE_LOCAL_PATH)
+endif
+endif
 
 
 .PHONY: ci-lint
@@ -42,10 +66,31 @@ docs:
 
 
 .PHONY: build
-# Build thrustOauth2idServer for amd64 binary
+# Build thrustOauth2idServer binary for the specified OS/ARCH (defaults to linux/arm64)
 build:
-	@echo "building 'thrustOauth2idServer', binary file will output to 'cmd/thrustOauth2idServer'"
-	@cd cmd/thrustOauth2idServer && CGO_ENABLED=0 go build
+ifeq ($(USE_DOCKER),1)
+ifeq ($(TARGET_OS),linux)
+	@echo "building '$(SERVICE_NAME)' for $(TARGET_OS)/$(TARGET_ARCH) using Docker ($(DOCKER_IMAGE))"
+	@command -v docker >/dev/null || { echo "docker not found. install docker or run with USE_DOCKER=0."; exit 1; }
+	@docker run --rm --platform $(DOCKER_PLATFORM) \
+		-e CGO_ENABLED=1 \
+		-e GOOS=$(TARGET_OS) \
+		-e GOARCH=$(TARGET_ARCH) \
+		-e HOST_UID=$(HOST_UID) \
+		-e HOST_GID=$(HOST_GID) \
+		-v $(CURDIR):/workspace \
+		$(DOCKER_EXTRA_VOLUMES) \
+		-w /workspace \
+		$(DOCKER_IMAGE) \
+		bash -lc "apt-get update && apt-get install -y --no-install-recommends build-essential libsqlite3-dev && export PATH=/usr/local/go/bin:\$$PATH && cd cmd/$(SERVICE_NAME) && go build && chown \$$HOST_UID:\$$HOST_GID $(SERVICE_NAME)"
+else
+	@echo "docker build currently supports linux targets only; falling back to local go build"
+	@cd cmd/$(SERVICE_NAME) && CGO_ENABLED=$(CGO_ENABLED) GOOS=$(TARGET_OS) GOARCH=$(TARGET_ARCH) go build
+endif
+else
+	@echo "building '$(SERVICE_NAME)' for $(TARGET_OS)/$(TARGET_ARCH), binary file will output to 'cmd/$(SERVICE_NAME)'"
+	@cd cmd/$(SERVICE_NAME) && CGO_ENABLED=$(CGO_ENABLED) GOOS=$(TARGET_OS) GOARCH=$(TARGET_ARCH) go build
+endif
 
 
 .PHONY: run
@@ -73,9 +118,12 @@ binary-package: build
 
 
 .PHONY: deploy-binary
-# Deploy binary to remote linux server, e.g. make deploy-binary USER=root PWD=123456 IP=192.168.1.10
+# Deploy binary to remote linux server via SSH key auth, e.g. make deploy-binary REMOTE_HOST=ec2-user@ericsg
+deploy-binary: TARGET_OS=linux
+deploy-binary: TARGET_ARCH=arm64
+deploy-binary: USE_DOCKER?=1
 deploy-binary: binary-package
-	@expect scripts/deploy-binary.sh $(USER) $(PWD) $(IP)
+	@bash scripts/deploy-binary.sh '$(REMOTE_HOST)' '$(REMOTE_TMP)'
 
 
 .PHONY: image-build-local
