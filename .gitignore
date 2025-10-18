@@ -24,3 +24,5 @@ dist/
 cmd/thrustOauth2idServer/thrustOauth2idServer
 thrustOauth2idServer.sublime-workspace
 .gocache
+thrustOauth2idServer-binary.tar.gz
+configs/thrustOauth2idServer_cc.yml

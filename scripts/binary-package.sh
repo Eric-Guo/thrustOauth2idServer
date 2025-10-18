@@ -1,24 +1,32 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+set -euo pipefail
 
 serviceName="thrustOauth2idServer"
+packageDir="${serviceName}-binary"
+archive="${packageDir}.tar.gz"
+binaryPath="cmd/${serviceName}/${serviceName}"
 
-mkdir -p ${serviceName}-binary/configs
+rm -rf "${packageDir}" "${archive}"
+mkdir -p "${packageDir}/configs"
 
-cp -f deployments/binary/run.sh ${serviceName}-binary
-chmod +x ${serviceName}-binary/run.sh
+if [[ ! -f "${binaryPath}" ]]; then
+  echo "error: ${binaryPath} does not exist. run 'make build' first." >&2
+  exit 1
+fi
 
-cp -f deployments/binary/deploy.sh ${serviceName}-binary
-chmod +x ${serviceName}-binary/deploy.sh
+cp -f deployments/binary/run.sh "${packageDir}"
+chmod +x "${packageDir}/run.sh"
 
-cp -f cmd/${serviceName}/${serviceName} ${serviceName}-binary
-cp -f configs/${serviceName}.yml ${serviceName}-binary/configs
-cp -f configs/${serviceName}_cc.yml ${serviceName}-binary/configs
+cp -f deployments/binary/deploy.sh "${packageDir}"
+chmod +x "${packageDir}/deploy.sh"
 
-# compressing binary file
-#upx -9 ${serviceName}
+cp -f "${binaryPath}" "${packageDir}"
+cp -f "configs/${serviceName}.yml" "${packageDir}/configs"
+cp -f "configs/${serviceName}_cc.yml" "${packageDir}/configs"
 
-tar zcvf ${serviceName}-binary.tar.gz ${serviceName}-binary
-rm -rf ${serviceName}-binary
+tar zcf "${archive}" "${packageDir}"
+rm -rf "${packageDir}"
 
 echo ""
-echo "package binary successfully, output file = ${serviceName}-binary.tar.gz"
+echo "package binary successfully, output file = ${archive}"

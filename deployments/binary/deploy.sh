@@ -26,6 +26,7 @@ fi
 
 # running service
 cd ~/app/${serviceName}-binary
+sudo setcap 'cap_net_bind_service=+ep' ~/app/${serviceName}-binary/${serviceName}
 chmod +x run.sh
 ./run.sh
 checkResult $?
