@@ -1,14 +1,14 @@
 package proxy
 
 import (
-    "context"
+	"context"
 	"errors"
-    "net"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"os"
-    "strings"
+	"strings"
 
 	"github.com/go-dev-frame/sponge/pkg/logger"
 )
@@ -18,11 +18,11 @@ type Options struct {
 	TargetURL      *url.URL
 	BadGatewayPage string
 	ForwardHeaders bool
-    // UnixSocketPath, if non-empty, makes the proxy connect to the upstream
-    // via a UNIX domain socket instead of TCP. The HTTP request URL is still
-    // rewritten to TargetURL for host/scheme, but the actual transport dials
-    // the provided socket path using network "unix".
-    UnixSocketPath string
+	// UnixSocketPath, if non-empty, makes the proxy connect to the upstream
+	// via a UNIX domain socket instead of TCP. The HTTP request URL is still
+	// rewritten to TargetURL for host/scheme, but the actual transport dials
+	// the provided socket path using network "unix".
+	UnixSocketPath string
 }
 
 // NewReverseProxy builds an httputil.ReverseProxy configured similar to the
@@ -34,7 +34,7 @@ func NewReverseProxy(opts Options) *httputil.ReverseProxy {
 			setXForwarded(r, opts.ForwardHeaders)
 		},
 		ErrorHandler: proxyErrorHandler(opts.BadGatewayPage),
-        Transport:    createProxyTransport(opts.UnixSocketPath),
+		Transport:    createProxyTransport(opts.UnixSocketPath),
 	}
 
 	return proxy
@@ -91,15 +91,15 @@ func isRequestEntityTooLarge(err error) bool {
 func createProxyTransport(unixSocketRaw string) *http.Transport {
 	transport := http.DefaultTransport.(*http.Transport).Clone()
 	transport.DisableCompression = true
-    socketPath := normalizeUnixSocketPath(unixSocketRaw)
-    if socketPath != "" {
-        // Route all outbound requests to the given UNIX socket, ignoring TCP host:port.
-        transport.DialContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
-            return (&net.Dialer{}).DialContext(ctx, "unix", socketPath)
-        }
-        // HTTP/2 over unix domain sockets is unusual; keep defaults which already
-        // negotiate HTTP/1.1 for non-TLS transports.
-    }
+	socketPath := normalizeUnixSocketPath(unixSocketRaw)
+	if socketPath != "" {
+		// Route all outbound requests to the given UNIX socket, ignoring TCP host:port.
+		transport.DialContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
+			return (&net.Dialer{}).DialContext(ctx, "unix", socketPath)
+		}
+		// HTTP/2 over unix domain sockets is unusual; keep defaults which already
+		// negotiate HTTP/1.1 for non-TLS transports.
+	}
 	return transport
 }
 
@@ -108,18 +108,19 @@ func createProxyTransport(unixSocketRaw string) *http.Transport {
 //   - "/tmp/puma.sock"
 //   - "unix:///tmp/puma.sock"
 //   - "unix://tmp/puma.sock"
+//
 // Any other string returns as-is if it already looks like a path.
 func normalizeUnixSocketPath(in string) string {
-    if in == "" {
-        return ""
-    }
-    s := strings.TrimSpace(in)
-    if strings.HasPrefix(s, "unix://") {
-        s = strings.TrimPrefix(s, "unix://")
-        if !strings.HasPrefix(s, "/") {
-            s = "/" + s
-        }
-        return s
-    }
-    return s
+	if in == "" {
+		return ""
+	}
+	s := strings.TrimSpace(in)
+	if strings.HasPrefix(s, "unix://") {
+		s = strings.TrimPrefix(s, "unix://")
+		if !strings.HasPrefix(s, "/") {
+			s = "/" + s
+		}
+		return s
+	}
+	return s
 }

@@ -28,9 +28,9 @@ func CreateServices() []app.IServer {
 			logger.Fatal("upstream enabled but command not configured")
 		}
 
-        // If a unix socket is configured, do not derive or set TargetPort to avoid conflicts.
-        if cfg.Upstream.TargetBindSocket == "" && cfg.Upstream.TargetPort == 0 {
-            cfg.Upstream.TargetPort = deriveTargetPort(cfg.Proxy.TargetURL)
+		// If a unix socket is configured, do not derive or set TargetPort to avoid conflicts.
+		if cfg.Upstream.TargetBindSocket == "" && cfg.Upstream.TargetPort == 0 {
+			cfg.Upstream.TargetPort = deriveTargetPort(cfg.Proxy.TargetURL)
 		}
 
 		servers = append(servers, upstream.NewServer(cfg.Upstream))

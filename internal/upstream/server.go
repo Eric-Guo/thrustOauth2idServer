@@ -10,6 +10,7 @@ import (
 	"sync"
 	"syscall"
 	"time"
+	"unicode"
 
 	"github.com/go-dev-frame/sponge/pkg/logger"
 
@@ -17,6 +18,8 @@ import (
 )
 
 const defaultStopTimeout = 10 * time.Second
+
+var errEmptyCommand = errors.New("upstream command is empty")
 
 // Server supervises an upstream command, relaying logs and signals.
 type Server struct {
@@ -35,10 +38,15 @@ func NewServer(cfg config.Upstream) *Server {
 // Start launches the upstream command and blocks until it exits.
 func (s *Server) Start() error {
 	if s.cfg.Enabled && s.cfg.Command == "" {
-		return errors.New("upstream command is empty")
+		return errEmptyCommand
 	}
 
-	cmd := exec.Command(s.cfg.Command, s.cfg.Args...)
+	command, args, err := normalizeCommand(s.cfg.Command, s.cfg.Args)
+	if err != nil {
+		return fmt.Errorf("prepare upstream command: %w", err)
+	}
+
+	cmd := exec.Command(command, args...)
 	if s.cfg.Enabled && s.cfg.WorkingDirectory != "" {
 		if _, err := os.Stat(s.cfg.WorkingDirectory); err != nil {
 			if os.IsNotExist(err) {
@@ -75,8 +83,8 @@ func (s *Server) Start() error {
 	}
 
 	logger.Info("upstream process started",
-		logger.String("command", s.cfg.Command),
-		logger.Any("args", s.cfg.Args),
+		logger.String("command", command),
+		logger.Any("args", args),
 		logger.Int("pid", cmd.Process.Pid),
 		logger.String("working_dir", cmd.Dir))
 
@@ -183,6 +191,73 @@ func (s *Server) buildEnv() []string {
 	}
 
 	return env
+}
+
+func normalizeCommand(command string, extraArgs []string) (string, []string, error) {
+	parts, err := splitCommandLine(command)
+	if err != nil {
+		return "", nil, err
+	}
+	if len(parts) == 0 {
+		return "", nil, errEmptyCommand
+	}
+
+	base := parts[0]
+	args := make([]string, 0, len(parts)-1+len(extraArgs))
+	if len(parts) > 1 {
+		args = append(args, parts[1:]...)
+	}
+	args = append(args, extraArgs...)
+	return base, args, nil
+}
+
+func splitCommandLine(command string) ([]string, error) {
+	var (
+		result   []string
+		current  strings.Builder
+		inSingle bool
+		inDouble bool
+		escape   bool
+	)
+
+	for _, r := range command {
+		switch {
+		case escape:
+			current.WriteRune(r)
+			escape = false
+		case r == '\\':
+			if inSingle {
+				current.WriteRune(r)
+				continue
+			}
+			escape = true
+		case r == '\'' && !inDouble:
+			inSingle = !inSingle
+		case r == '"' && !inSingle:
+			inDouble = !inDouble
+		case unicode.IsSpace(r) && !inSingle && !inDouble:
+			if current.Len() > 0 {
+				result = append(result, current.String())
+				current.Reset()
+			}
+		default:
+			current.WriteRune(r)
+		}
+	}
+
+	if escape {
+		return nil, errors.New("unterminated escape sequence in command")
+	}
+
+	if inSingle || inDouble {
+		return nil, errors.New("unterminated quoted string in command")
+	}
+
+	if current.Len() > 0 {
+		result = append(result, current.String())
+	}
+
+	return result, nil
 }
 
 func parseSignal(name string) (syscall.Signal, error) {

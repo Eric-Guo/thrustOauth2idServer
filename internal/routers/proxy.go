@@ -22,17 +22,17 @@ func registerReverseProxy(r *gin.Engine) {
 
 	targetURLStr := proxyCfg.TargetURL
 	if targetURLStr == "" && cfg.Upstream.Enabled {
-        if cfg.Upstream.TargetBindSocket != "" {
-            // When a UNIX socket is configured, we still need a valid HTTP URL
-            // for request rewriting; the transport will dial the socket.
-            targetURLStr = "http://localhost"
-        } else {
-            port := cfg.Upstream.TargetPort
-            if port == 0 {
-                port = 3000
-            }
-            targetURLStr = fmt.Sprintf("http://127.0.0.1:%d", port)
-        }
+		if cfg.Upstream.TargetBindSocket != "" {
+			// When a UNIX socket is configured, we still need a valid HTTP URL
+			// for request rewriting; the transport will dial the socket.
+			targetURLStr = "http://localhost"
+		} else {
+			port := cfg.Upstream.TargetPort
+			if port == 0 {
+				port = 3000
+			}
+			targetURLStr = fmt.Sprintf("http://127.0.0.1:%d", port)
+		}
 	}
 
 	targetURL, err := url.Parse(targetURLStr)

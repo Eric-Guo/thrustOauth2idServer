@@ -103,6 +103,15 @@ make run
      targetPort: 3000
    ```
 
+   `command` 字段会按照 shell 规则拆分，因此也可以直接写入完整的命令行，例如：
+
+   ```yaml
+   command: "/home/ec2-user/.rbenv/bin/rbenv exec bundle exec --keep-file-descriptors puma -C /var/www/oauth2id/shared/puma.rb"
+   args: []
+   ```
+
+   如果仍在 `args` 中追加参数，它们会拼接在拆分后的命令之后。
+
 2. 启动服务 `make run Config=configs/thrustOauth2idServer.yml`，Thruster 会在启动 HTTP 代理的同时拉起 Rails/Puma 进程，并通过 `PORT` 环境变量传递 `targetPort`。
 
 ## 开发指南

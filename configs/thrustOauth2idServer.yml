@@ -52,9 +52,10 @@ proxy:
 
 upstream:
   enabled: false              # when true, launch and supervise a local upstream command
-  command: "bin/rails"        # executable to run for the upstream Rails application
-  args:                       # optional arguments passed to the command
+  command: "bin/rails"        # executable to run for the upstream Rails application (arguments may be included here)
+  args:                       # optional arguments appended after parsing command; leave empty when command already contains them
     - "server"
+  # Example: command: "/home/ec2-user/.rbenv/bin/rbenv exec bundle exec --keep-file-descriptors puma -C /var/www/oauth2id/shared/puma.rb"
   workingDirectory: ""        # change to rails app directory before starting the command
   targetPort: 3000            # port the upstream process should bind to; exported as PORT, if targetBindSocket set, will using socket first
   targetBindSocket: "unix:///Users/guochunzhong/git/sso/oauth2id/tmp/sockets/puma.sock" # full path to the socket the upstream process should bind to
