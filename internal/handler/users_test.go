@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
 	"testing"
 	"time"
@@ -134,12 +135,11 @@ func Test_usersHandler_DeleteByID(t *testing.T) {
 	h := newUsersHandler()
 	defer h.Close()
 	testData := h.TestData.(*model.Users)
-	expectedSQLForDeletion := "UPDATE .*"
-	expectedArgsForDeletionTime := h.MockDao.AnyTime
+	expectedSQLForDeletion := "DELETE .*"
 
 	h.MockDao.SQLMock.ExpectBegin()
 	h.MockDao.SQLMock.ExpectExec(expectedSQLForDeletion).
-		WithArgs(expectedArgsForDeletionTime, testData.ID). // adjusted for the amount of test data
+		WithArgs(testData.ID). // adjusted for the amount of test data
 		WillReturnResult(sqlmock.NewResult(int64(testData.ID), 1))
 	h.MockDao.SQLMock.ExpectCommit()
 
@@ -157,6 +157,12 @@ func Test_usersHandler_DeleteByID(t *testing.T) {
 	assert.NoError(t, err)
 
 	// delete error test
+	h.MockDao.SQLMock.ExpectBegin()
+	h.MockDao.SQLMock.ExpectExec(expectedSQLForDeletion).
+		WithArgs(111).
+		WillReturnError(errors.New("record not found"))
+	h.MockDao.SQLMock.ExpectRollback()
+
 	err = httpcli.Delete(result, h.GetRequestURL("DeleteByID", 111))
 	assert.Error(t, err)
 }
@@ -187,6 +193,12 @@ func Test_usersHandler_UpdateByID(t *testing.T) {
 	assert.NoError(t, err)
 
 	// update error test
+	h.MockDao.SQLMock.ExpectBegin()
+	h.MockDao.SQLMock.ExpectExec("UPDATE .*").
+		WithArgs(h.MockDao.AnyTime, 111).
+		WillReturnError(errors.New("record not found"))
+	h.MockDao.SQLMock.ExpectRollback()
+
 	err = httpcli.Put(result, h.GetRequestURL("UpdateByID", 111), testData)
 	assert.Error(t, err)
 }
@@ -218,6 +230,10 @@ func Test_usersHandler_GetByID(t *testing.T) {
 	assert.NoError(t, err)
 
 	// get error test
+	h.MockDao.SQLMock.ExpectQuery("SELECT .*").
+		WithArgs(111, 1).
+		WillReturnError(errors.New("record not found"))
+
 	err = httpcli.Get(result, h.GetRequestURL("GetByID", 111))
 	assert.Error(t, err)
 }
@@ -251,6 +267,9 @@ func Test_usersHandler_List(t *testing.T) {
 	assert.NoError(t, err)
 
 	// get error test
+	h.MockDao.SQLMock.ExpectQuery("SELECT .*").
+		WillReturnError(errors.New("unknown column"))
+
 	err = httpcli.Post(result, h.GetRequestURL("List"), &types.ListUserssRequest{query.Params{
 		Page:  0,
 		Limit: 10,
@@ -265,9 +284,9 @@ func Test_usersHandler_DeleteByIDs(t *testing.T) {
 	testData := h.TestData.(*model.Users)
 
 	h.MockDao.SQLMock.ExpectBegin()
-	h.MockDao.SQLMock.ExpectExec("UPDATE .*").
-		WithArgs(h.MockDao.AnyTime, testData.ID). // adjusted for the amount of test data
-		WillReturnResult(sqlmock.NewResult(int64(testData.ID), 1))
+	h.MockDao.SQLMock.ExpectExec("DELETE .*").
+		WithArgs(testData.ID).
+		WillReturnResult(sqlmock.NewResult(0, 1))
 	h.MockDao.SQLMock.ExpectCommit()
 
 	result := &httpcli.StdResult{}
@@ -284,6 +303,12 @@ func Test_usersHandler_DeleteByIDs(t *testing.T) {
 	assert.NoError(t, err)
 
 	// get error test
+	h.MockDao.SQLMock.ExpectBegin()
+	h.MockDao.SQLMock.ExpectExec("DELETE .*").
+		WithArgs(111).
+		WillReturnError(errors.New("record not found"))
+	h.MockDao.SQLMock.ExpectRollback()
+
 	err = httpcli.Post(result, h.GetRequestURL("DeleteByIDs"), &types.DeleteUserssByIDsRequest{IDs: []uint64{111}})
 	assert.Error(t, err)
 }
@@ -322,6 +347,10 @@ func Test_usersHandler_GetByCondition(t *testing.T) {
 	assert.NoError(t, err)
 
 	// get error test
+	h.MockDao.SQLMock.ExpectQuery("SELECT .*").
+		WithArgs(2, 1).
+		WillReturnError(errors.New("record not found"))
+
 	err = httpcli.Post(result, h.GetRequestURL("GetByCondition"), &types.GetUsersByConditionRequest{
 		query.Conditions{
 			Columns: []query.Column{
@@ -358,9 +387,13 @@ func Test_usersHandler_ListByIDs(t *testing.T) {
 	// zero id error test
 	_ = httpcli.Post(result, h.GetRequestURL("ListByIDs"), nil)
 
-	// get error test
+	// get error test - no data found should return empty array, not error
+	h.MockDao.SQLMock.ExpectQuery("SELECT .*").
+		WithArgs(111).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}))
+
 	err = httpcli.Post(result, h.GetRequestURL("ListByIDs"), &types.ListUserssByIDsRequest{IDs: []uint64{111}})
-	assert.Error(t, err)
+	assert.NoError(t, err)
 }
 
 func Test_usersHandler_ListByLastID(t *testing.T) {
@@ -384,6 +417,9 @@ func Test_usersHandler_ListByLastID(t *testing.T) {
 	}
 
 	// error test
+	h.MockDao.SQLMock.ExpectQuery("SELECT .*").
+		WillReturnError(errors.New("unknown column"))
+
 	err = httpcli.Get(result, h.GetRequestURL("ListByLastID"), httpcli.WithParams(map[string]interface{}{"lastID": 0, "limit": 10, "sort": "unknown-column"}))
 	assert.Error(t, err)
 }

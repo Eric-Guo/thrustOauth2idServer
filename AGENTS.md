@@ -1,32 +1,33 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- Go module `thrust_oauth2id` with the HTTP entry point at `cmd/thrustOauth2idServer/main.go`.
-- Layered packages live under `internal/`: `routers` wires Gin routes to `handler`, `dao` and `model` back storage, and `server` handles startup; add fresh business logic in a dedicated subpackage (for example `internal/service`).
-- Configuration samples sit in `configs/`, deployment assets in `deployments/`, documentation in `docs/`, and helper scripts in `scripts/`; keep new assets consistent with this layout.
+- The Go module `thrust_oauth2id` boots from `cmd/thrustOauth2idServer/main.go`; keep CLI or server wiring here only.
+- Core packages sit in `internal/`: `routers` registers Gin routes, `handler` hosts HTTP logic, `dao` and `model` back storage, while `server` handles lifecycle; add new business logic under a focused subpackage such as `internal/service`.
+- Environment assets live alongside the code: configs in `configs/`, deployment manifests in `deployments/`, docs and Swagger sources in `docs/`, helper scripts in `scripts/`; mirror this layout when adding files.
+- Tests belong next to their targets (`internal/handler/user_test.go` style) so ownership stays obvious.
 
 ## Build, Test, and Development Commands
-- `make run [Config=configs/dev.yml]` builds and starts the service with an optional config override.
-- `make build` emits a local binary in `cmd/thrustOauth2idServer/` for packaging or Docker workflows.
-- `make ci-lint` runs `gofmt -s` plus `golangci-lint`; use it before every push.
-- `make docs` regenerates Swagger output after handler or type changes.
-- `make test` executes fast unit tests, while `make cover` adds HTML coverage context; share key results in reviews.
+- `make run [Config=configs/dev.yml]` compiles and starts the server with an optional config override.
+- `make build` produces a deployable binary in `cmd/thrustOauth2idServer/`.
+- `make ci-lint` runs `gofmt -s` and `golangci-lint`; run it before pushing or opening a PR.
+- `make docs` regenerates Swagger artifacts after handler or model updates.
+- `make test` executes fast unit suites; `make cover` adds HTML coverage for local review.
 
 ## Coding Style & Naming Conventions
-- Keep code `gofmt`-clean and rely on `goimports` (local prefix `thrust_oauth2id`) to order imports automatically.
-- Respect the linters configured in `.golangci.yml` (`revive`, `staticcheck`, `misspell`, etc.) and keep lines under 200 characters per `lll`.
-- Favor descriptive exported names in UpperCamelCase, short lowercase package names, and structured logger fields.
+- Format all Go files with `gofmt`/`goimports` (module prefix `thrust_oauth2id`) and keep lines under 200 characters per `lll`.
+- Follow lints in `.golangci.yml` (`revive`, `staticcheck`, `misspell`, etc.); resolve warnings rather than suppressing them.
+- Exported types and functions use UpperCamelCase, package names stay short and lowercase, and structured logs should favor consistent field keys (`request_id`, `subject`, etc.).
 
 ## Testing Guidelines
-- Place tests beside implementation in `*_test.go` files (`internal/handler/user_test.go` pattern) and stick to table-driven cases for handlers or DAOs.
-- Run `make test` locally before committing; add `make cover` when introducing new flows to confirm coverage.
-- Mock external stores (SQLite paths, Redis DSN) so tests stay hermetic and CI-friendly.
+- Author table-driven tests in `*_test.go` files, leaning on `testing` and `net/http/httptest` for handler coverage.
+- Stub external resources (SQLite DSNs, Redis) so suites run hermetically; keep fixtures under `testdata/` when needed.
+- Run `make test` before every commit and `make cover` for new flows to confirm coverage deltas.
 
 ## Commit & Pull Request Guidelines
-- Use imperative, concise commit subjects as seen in history (`Add Rails Auth`, `go mod tidy`) and add optional bodies for nuance.
-- Reference issues, config files touched, or migration steps in the PR description; include command snippets or screenshots for Swagger updates.
-- State manual test evidence, flag secrets or deployment follow-ups, and request reviewers familiar with the affected package.
+- Write imperative, concise commit subjects (e.g., `Add Rails Auth`, `Fix token refresh`) with optional bodies for context or follow-up tasks.
+- PRs should link related issues, list touched configs, and include manual test evidence or `make` commands executed; attach Swagger screenshots when docs change.
+- Request reviewers familiar with the touched package and call out secrets, migrations, or deployment sequencing explicitly.
 
-## Configuration & Security Notes
-- Copy `configs/thrustOauth2idServer.yml` per environment, replacing secrets such as `rails.secretKeyBase` outside version control.
-- When enabling TLS or Redis, update matching files in `deployments/` and surface credential needs in the PR to keep operators aligned.
+## Security & Configuration Tips
+- Never commit environment secrets; instead copy `configs/thrustOauth2idServer.yml` and inject secrets via CI or runtime tooling.
+- When enabling TLS, Redis, or new third-party services, update matching assets in `deployments/` and document operational steps in the PR or `docs/`.
