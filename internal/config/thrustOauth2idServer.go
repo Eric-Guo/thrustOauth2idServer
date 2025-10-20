@@ -34,13 +34,57 @@ type Config struct {
 	HTTP     HTTP     `yaml:"http" json:"http"`
 	Jaeger   Jaeger   `yaml:"jaeger" json:"jaeger"`
 	Logger   Logger   `yaml:"logger" json:"logger"`
+	Proxy    Proxy    `yaml:"proxy" json:"proxy"`
 	Rails    Rails    `yaml:"rails" json:"rails"`
 	Redis    Redis    `yaml:"redis" json:"redis"`
+	Upstream Upstream `yaml:"upstream" json:"upstream"`
+}
+
+type TLS struct {
+	AcmeDirectory string   `yaml:"acmeDirectory" json:"acmeDirectory"`
+	Domains       []string `yaml:"domains" json:"domains"`
+	Eab           Eab      `yaml:"eab" json:"eab"`
+	StoragePath   string   `yaml:"storagePath" json:"storagePath"`
+}
+
+type HTTP struct {
+	AddRequestStartHeader bool `yaml:"addRequestStartHeader" json:"addRequestStartHeader"`
+	GzipEnabled           bool `yaml:"gzipEnabled" json:"gzipEnabled"`
+	HTTPSPort             int  `yaml:"httpsPort" json:"httpsPort"`
+	IdleTimeout           int  `yaml:"idleTimeout" json:"idleTimeout"`
+	LogRequests           bool `yaml:"logRequests" json:"logRequests"`
+	MaxRequestBodyBytes   int  `yaml:"maxRequestBodyBytes" json:"maxRequestBodyBytes"`
+	Port                  int  `yaml:"port" json:"port"`
+	ReadTimeout           int  `yaml:"readTimeout" json:"readTimeout"`
+	Timeout               int  `yaml:"timeout" json:"timeout"`
+	TLS                   TLS  `yaml:"tls" json:"tls"`
+	WriteTimeout          int  `yaml:"writeTimeout" json:"writeTimeout"`
 }
 
 type Jaeger struct {
 	AgentHost string `yaml:"agentHost" json:"agentHost"`
 	AgentPort int    `yaml:"agentPort" json:"agentPort"`
+}
+
+type Upstream struct {
+	Args             []string `yaml:"args" json:"args"`
+	Command          string   `yaml:"command" json:"command"`
+	Enabled          bool     `yaml:"enabled" json:"enabled"`
+	Env              Env      `yaml:"env" json:"env"`
+	StopSignal       string   `yaml:"stopSignal" json:"stopSignal"`
+	TargetBindSocket string   `yaml:"targetBindSocket" json:"targetBindSocket"`
+	TargetPort       int      `yaml:"targetPort" json:"targetPort"`
+	WorkingDirectory string   `yaml:"workingDirectory" json:"workingDirectory"`
+}
+
+type Proxy struct {
+	BadGatewayPage   string `yaml:"badGatewayPage" json:"badGatewayPage"`
+	Cache            Cache  `yaml:"cache" json:"cache"`
+	Enabled          bool   `yaml:"enabled" json:"enabled"`
+	ForwardHeaders   bool   `yaml:"forwardHeaders" json:"forwardHeaders"`
+	H2cEnabled       bool   `yaml:"h2cEnabled" json:"h2cEnabled"`
+	TargetURL        string `yaml:"targetURL" json:"targetURL"`
+	XSendfileEnabled bool   `yaml:"xSendfileEnabled" json:"xSendfileEnabled"`
 }
 
 type App struct {
@@ -56,6 +100,13 @@ type App struct {
 	Name                 string  `yaml:"name" json:"name"`
 	TracingSamplingRate  float64 `yaml:"tracingSamplingRate" json:"tracingSamplingRate"`
 	Version              string  `yaml:"version" json:"version"`
+}
+
+type Cache struct {
+	CapacityBytes        int  `yaml:"capacityBytes" json:"capacityBytes"`
+	Enabled              bool `yaml:"enabled" json:"enabled"`
+	MaxItemSizeBytes     int  `yaml:"maxItemSizeBytes" json:"maxItemSizeBytes"`
+	MaxResponseBodyBytes int  `yaml:"maxResponseBodyBytes" json:"maxResponseBodyBytes"`
 }
 
 type Sqlite struct {
@@ -90,7 +141,12 @@ type Logger struct {
 	Level  string `yaml:"level" json:"level"`
 }
 
-type HTTP struct {
-	Port    int `yaml:"port" json:"port"`
-	Timeout int `yaml:"timeout" json:"timeout"`
+type Eab struct {
+	HmacKey string `yaml:"hmacKey" json:"hmacKey"`
+	Kid     string `yaml:"kid" json:"kid"`
 }
+
+// Changing Env from map[string]string to a struct means only the fields compiled into that struct will ever be forwarded to the upstream process.
+// Any additional environment variable a deployer adds to the YAML (for example RAILS_LOG_TO_STDOUT or DATABASE_URL) will now be ignored by conf.Parse, so buildEnv() never sees it. Previously this worked without touching the Go code, which is critical for configuration.
+// This blocks operators from adding new env vars unless they rebuild the binary, so we need to keep Env as a map (or another dynamic representation).
+type Env map[string]string

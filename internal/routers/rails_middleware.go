@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-dev-frame/sponge/pkg/rails"
+	"github.com/go-dev-frame/sponge/pkg/gin/middleware/auth"
 )
 
 // VerifyRailsSessionUserIdIs returns a middleware that verifies the rails session
@@ -21,7 +21,7 @@ func VerifyRailsSessionUserIdIs(user_id int64) gin.HandlerFunc {
 			c.AbortWithStatusJSON(401, gin.H{"error": "invalid rails_session"})
 			return
 		}
-		uidVal, ok := rails.UserIDFromSession(session)
+		uidVal, ok := auth.UserIDFromSession(session)
 		if !ok {
 			c.AbortWithStatusJSON(401, gin.H{"error": "user id not found in session"})
 			return

@@ -15,7 +15,6 @@ import (
 	"github.com/go-dev-frame/sponge/pkg/gin/middleware"
 	"github.com/go-dev-frame/sponge/pkg/gin/middleware/metrics"
 	"github.com/go-dev-frame/sponge/pkg/gin/prof"
-	"github.com/go-dev-frame/sponge/pkg/logger"
 
 	"thrust_oauth2id/docs"
 	"thrust_oauth2id/internal/config"
@@ -42,13 +41,6 @@ func NewRouter() *gin.Engine {
 
 	// request id middleware
 	r.Use(middleware.RequestID())
-
-	// logger middleware, to print simple messages, replace middleware.Logging with middleware.SimpleLog
-	r.Use(middleware.Logging(
-		middleware.WithLog(logger.Get()),
-		middleware.WithRequestIDFromContext(),
-		middleware.WithIgnoreRoutes("/metrics"), // ignore path
-	))
 
 	// metrics middleware
 	if config.Get().App.EnableMetrics {
@@ -111,6 +103,8 @@ func NewRouter() *gin.Engine {
 	// if you have other group routes you can add them here
 	// example:
 	//    registerRouters(r, "/api/v2", apiV2RouteFns, middleware.Auth())
+
+	registerReverseProxy(r)
 
 	return r
 }

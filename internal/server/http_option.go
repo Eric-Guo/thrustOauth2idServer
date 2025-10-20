@@ -1,10 +1,13 @@
 package server
 
+import "net/http"
+
 // HTTPOption setting up http
 type HTTPOption func(*httpOptions)
 
 type httpOptions struct {
-	isProd bool
+	isProd  bool
+	handler http.Handler
 }
 
 func defaultHTTPOptions() *httpOptions {
@@ -23,5 +26,12 @@ func (o *httpOptions) apply(opts ...HTTPOption) {
 func WithHTTPIsProd(isProd bool) HTTPOption {
 	return func(o *httpOptions) {
 		o.isProd = isProd
+	}
+}
+
+// WithHTTPHandler allows injecting a custom http handler (primarily for testing)
+func WithHTTPHandler(handler http.Handler) HTTPOption {
+	return func(o *httpOptions) {
+		o.handler = handler
 	}
 }
