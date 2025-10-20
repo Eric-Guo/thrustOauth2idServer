@@ -21,18 +21,29 @@ func registerReverseProxy(r *gin.Engine) {
 	}
 
 	targetURLStr := proxyCfg.TargetURL
-	if targetURLStr == "" && cfg.Upstream.Enabled {
+	derivedFromSocket := false
+	if targetURLStr == "" {
 		if cfg.Upstream.TargetBindSocket != "" {
 			// When a UNIX socket is configured, we still need a valid HTTP URL
 			// for request rewriting; the transport will dial the socket.
 			targetURLStr = "http://localhost"
-		} else {
+			derivedFromSocket = true
+		} else if cfg.Upstream.Enabled {
 			port := cfg.Upstream.TargetPort
 			if port == 0 {
 				port = 3000
 			}
 			targetURLStr = fmt.Sprintf("http://127.0.0.1:%d", port)
 		}
+	}
+
+	if targetURLStr == "" {
+		logger.Fatal(
+			"proxy target url not configured",
+			logger.Bool("proxy_enabled", proxyCfg.Enabled),
+			logger.Bool("upstream_enabled", cfg.Upstream.Enabled),
+		)
+		return
 	}
 
 	targetURL, err := url.Parse(targetURLStr)
@@ -45,7 +56,7 @@ func registerReverseProxy(r *gin.Engine) {
 	// Prefer dialing via UNIX socket when the upstream advertises one. This avoids
 	// TCP self-loops when the HTTP server and upstream share a port.
 	var unixSocketPath string
-	if cfg.Upstream.Enabled && cfg.Upstream.TargetBindSocket != "" {
+	if cfg.Upstream.TargetBindSocket != "" && (cfg.Upstream.Enabled || derivedFromSocket) {
 		unixSocketPath = cfg.Upstream.TargetBindSocket
 	}
 

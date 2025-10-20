@@ -41,7 +41,7 @@ http:
 proxy:
   enabled: true             # when true, proxy unmatched requests to targetURL
   xSendfileEnabled: false   # when true, translate X-Sendfile headers into direct file responses
-  targetURL: "http://127.0.0.1:3000" # upstream url to proxy requests to
+  targetURL: "" # upstream url to proxy requests to, empty will using targetBindSocket in upstream
   forwardHeaders: true        # preserve client-provided X-Forwarded-* headers
   badGatewayPage: "./public/502.html" # optional html page to serve on 502 errors
   # When enabled and targetURL is http (not https) and not using a UNIX socket,
