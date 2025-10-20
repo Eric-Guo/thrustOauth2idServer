@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"net"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/go-dev-frame/sponge/pkg/logger"
+	"golang.org/x/net/http2"
 )
 
 // Options configures how the reverse proxy behaves.
@@ -23,6 +25,8 @@ type Options struct {
 	// rewritten to TargetURL for host/scheme, but the actual transport dials
 	// the provided socket path using network "unix".
 	UnixSocketPath string
+	// H2cEnabled enables HTTP/2 cleartext (h2c) when the upstream speaks it.
+	H2cEnabled bool
 }
 
 // NewReverseProxy builds an httputil.ReverseProxy configured similar to the
@@ -34,7 +38,7 @@ func NewReverseProxy(opts Options) *httputil.ReverseProxy {
 			setXForwarded(r, opts.ForwardHeaders)
 		},
 		ErrorHandler: proxyErrorHandler(opts.BadGatewayPage),
-		Transport:    createProxyTransport(opts.UnixSocketPath),
+		Transport:    createProxyTransport(opts),
 	}
 
 	return proxy
@@ -88,19 +92,36 @@ func isRequestEntityTooLarge(err error) bool {
 	return errors.As(err, &maxBytesError)
 }
 
-func createProxyTransport(unixSocketRaw string) *http.Transport {
-	transport := http.DefaultTransport.(*http.Transport).Clone()
-	transport.DisableCompression = true
-	socketPath := normalizeUnixSocketPath(unixSocketRaw)
+func createProxyTransport(opts Options) http.RoundTripper {
+	// Start from the default transport for sane defaults.
+	base := http.DefaultTransport.(*http.Transport).Clone()
+	base.DisableCompression = true
+
+	// If a UNIX socket is provided, always prefer it and keep HTTP/1.1 semantics.
+	// HTTP/2 over unix sockets is uncommon and not targeted here.
+	socketPath := normalizeUnixSocketPath(opts.UnixSocketPath)
 	if socketPath != "" {
-		// Route all outbound requests to the given UNIX socket, ignoring TCP host:port.
-		transport.DialContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
+		base.DialContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
 			return (&net.Dialer{}).DialContext(ctx, "unix", socketPath)
 		}
-		// HTTP/2 over unix domain sockets is unusual; keep defaults which already
-		// negotiate HTTP/1.1 for non-TLS transports.
+		return base
 	}
-	return transport
+
+	// Enable HTTP/2 cleartext (h2c) via prior knowledge when explicitly opted-in
+	// and only for non-TLS upstreams.
+	if opts.H2cEnabled && opts.TargetURL != nil && opts.TargetURL.Scheme == "http" {
+		return &http2.Transport{
+			AllowHTTP:          true,
+			DisableCompression: true,
+			// Prior-knowledge: dial raw TCP and speak HTTP/2 without TLS or upgrade.
+			DialTLSContext: func(ctx context.Context, network, addr string, _ *tls.Config) (net.Conn, error) {
+				return (&net.Dialer{}).DialContext(ctx, network, addr)
+			},
+		}
+	}
+
+	// Default HTTP/1.1 (with TLS ALPN-driven h2 when applicable).
+	return base
 }
 
 // normalizeUnixSocketPath accepts common forms and returns a clean absolute

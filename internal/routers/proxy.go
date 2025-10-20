@@ -54,12 +54,14 @@ func registerReverseProxy(r *gin.Engine) {
 		BadGatewayPage: proxyCfg.BadGatewayPage,
 		ForwardHeaders: proxyCfg.ForwardHeaders,
 		UnixSocketPath: unixSocketPath,
+		H2cEnabled:     proxyCfg.H2cEnabled,
 	})
 
 	loggerFields := []logger.Field{
 		logger.String("target", targetURL.String()),
 		logger.Bool("forward_headers", proxyCfg.ForwardHeaders),
 		logger.String("bad_gateway_page", proxyCfg.BadGatewayPage),
+		logger.Bool("h2c_enabled", proxyCfg.H2cEnabled),
 	}
 	if unixSocketPath != "" {
 		loggerFields = append(loggerFields, logger.String("unix_socket", unixSocketPath))

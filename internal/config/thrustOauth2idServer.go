@@ -82,6 +82,7 @@ type Proxy struct {
 	Cache            Cache  `yaml:"cache" json:"cache"`
 	Enabled          bool   `yaml:"enabled" json:"enabled"`
 	ForwardHeaders   bool   `yaml:"forwardHeaders" json:"forwardHeaders"`
+	H2cEnabled       bool   `yaml:"h2cEnabled" json:"h2cEnabled"`
 	TargetURL        string `yaml:"targetURL" json:"targetURL"`
 	XSendfileEnabled bool   `yaml:"xSendfileEnabled" json:"xSendfileEnabled"`
 }

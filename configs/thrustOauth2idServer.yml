@@ -44,6 +44,10 @@ proxy:
   targetURL: "http://127.0.0.1:3000" # upstream url to proxy requests to
   forwardHeaders: true        # preserve client-provided X-Forwarded-* headers
   badGatewayPage: "./public/502.html" # optional html page to serve on 502 errors
+  # When enabled and targetURL is http (not https) and not using a UNIX socket,
+  # the reverse proxy will use HTTP/2 prior-knowledge to the upstream.
+  # See upstream discussion: https://github.com/basecamp/thruster/pull/89
+  h2cEnabled: false
   cache:
     enabled: true             # enable in-memory caching for cacheable responses
     capacityBytes: 67108864   # total bytes allocated for cached responses (64MB default)
