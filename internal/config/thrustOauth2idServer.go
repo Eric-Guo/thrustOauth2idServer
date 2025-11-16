@@ -78,13 +78,21 @@ type Upstream struct {
 }
 
 type Proxy struct {
-	BadGatewayPage   string `yaml:"badGatewayPage" json:"badGatewayPage"`
-	Cache            Cache  `yaml:"cache" json:"cache"`
-	Enabled          bool   `yaml:"enabled" json:"enabled"`
-	ForwardHeaders   bool   `yaml:"forwardHeaders" json:"forwardHeaders"`
-	H2cEnabled       bool   `yaml:"h2cEnabled" json:"h2cEnabled"`
-	TargetURL        string `yaml:"targetURL" json:"targetURL"`
-	XSendfileEnabled bool   `yaml:"xSendfileEnabled" json:"xSendfileEnabled"`
+	BadGatewayPage   string      `yaml:"badGatewayPage" json:"badGatewayPage"`
+	Cache            Cache       `yaml:"cache" json:"cache"`
+	Enabled          bool        `yaml:"enabled" json:"enabled"`
+	ForwardHeaders   bool        `yaml:"forwardHeaders" json:"forwardHeaders"`
+	H2cEnabled       bool        `yaml:"h2cEnabled" json:"h2cEnabled"`
+	HealthCheck      HealthCheck `yaml:"healthCheck" json:"healthCheck"`
+	Management       Management  `yaml:"management" json:"management"`
+	Strategy         string      `yaml:"strategy" json:"strategy"`
+	TargetURL        string      `yaml:"targetURL" json:"targetURL"`
+	XSendfileEnabled bool        `yaml:"xSendfileEnabled" json:"xSendfileEnabled"`
+}
+
+type Management struct {
+	BasePath string `yaml:"basePath" json:"basePath"`
+	Enabled  bool   `yaml:"enabled" json:"enabled"`
 }
 
 type App struct {
@@ -144,6 +152,11 @@ type Logger struct {
 type Eab struct {
 	HmacKey string `yaml:"hmacKey" json:"hmacKey"`
 	Kid     string `yaml:"kid" json:"kid"`
+}
+
+type HealthCheck struct {
+	IntervalSeconds int `yaml:"intervalSeconds" json:"intervalSeconds"`
+	TimeoutSeconds  int `yaml:"timeoutSeconds" json:"timeoutSeconds"`
 }
 
 // Changing Env from map[string]string to a struct means only the fields compiled into that struct will ever be forwarded to the upstream process.

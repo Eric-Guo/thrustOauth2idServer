@@ -40,6 +40,7 @@ http:
 
 proxy:
   enabled: true             # when true, proxy unmatched requests to targetURL
+  strategy: "round_robin"   # load balancing strategy: round_robin, least_connections, ip_hash
   xSendfileEnabled: true    # when true, translate X-Sendfile headers into direct file responses
   targetURL: "" # upstream url to proxy requests to, empty will using targetBindSocket in upstream
   forwardHeaders: true        # preserve client-provided X-Forwarded-* headers
@@ -48,6 +49,12 @@ proxy:
   # the reverse proxy will use HTTP/2 prior-knowledge to the upstream.
   # See upstream discussion: https://github.com/basecamp/thruster/pull/89
   h2cEnabled: false
+  healthCheck:
+    intervalSeconds: 5      # proxykit active health check interval
+    timeoutSeconds: 2       # proxykit health check timeout
+  management:
+    enabled: false          # expose proxykit management APIs when true
+    basePath: "/proxykit"   # base path for add/remove/list proxy endpoints
   cache:
     enabled: true             # enable in-memory caching for cacheable responses
     capacityBytes: 67108864   # total bytes allocated for cached responses (64MB default)
