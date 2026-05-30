@@ -30,13 +30,24 @@ http:
   maxRequestBodyBytes: 0    # maximum allowed request body in bytes; 0 disables the limit
   logRequests: true         # enable structured access logging
   tls:
+    # TLS mode options:
+    #   self-signed - use sponge managed localhost self-signed certificates
+    #   encrypt     - use sponge Let's Encrypt integration, requires domain and email
+    #   external    - use existing certFile and keyFile
+    #   remote-api  - fetch certificate files from a remote API
+    enableMode: ""          # empty disables tls
+    domain: ""              # required when enableMode is encrypt; domains below is kept as a legacy alias
     domains:
-      - ""                  # list of domains for automatic tls certificates, empty disables tls
-    acmeDirectory: "https://acme-v02.api.letsencrypt.org/directory" # acme directory url
-    storagePath: "./storage/autocert"   # directory to cache certificates
-    eab:
-      kid: ""               # external account binding key identifier
-      hmacKey: ""           # base64url encoded external account binding hmac key
+      - ""                  # legacy alias; first non-empty value is used when domain is empty
+    email: ""               # required when enableMode is encrypt
+    certFile: ""            # required when enableMode is external
+    keyFile: ""             # required when enableMode is external
+    storagePath: "./storage/httpsrv" # certificate cache directory for sponge tls modes
+    redirectHTTP: false     # encrypt mode only; redirect http.port traffic to HTTPS on httpsPort
+    remoteAPI:
+      url: ""               # required when enableMode is remote-api
+      timeout: 5            # remote API timeout, unit(second)
+      headers: {}           # optional request headers for remote-api mode
 
 proxy:
   enabled: true             # when true, proxy unmatched requests to targetURL

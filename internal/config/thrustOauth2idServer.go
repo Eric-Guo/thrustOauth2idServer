@@ -40,11 +40,22 @@ type Config struct {
 	Upstream Upstream `yaml:"upstream" json:"upstream"`
 }
 
+type RemoteAPI struct {
+	Headers map[string]string `yaml:"headers" json:"headers"`
+	Timeout int               `yaml:"timeout" json:"timeout"`
+	URL     string            `yaml:"url" json:"url"`
+}
+
 type TLS struct {
-	AcmeDirectory string   `yaml:"acmeDirectory" json:"acmeDirectory"`
-	Domains       []string `yaml:"domains" json:"domains"`
-	Eab           Eab      `yaml:"eab" json:"eab"`
-	StoragePath   string   `yaml:"storagePath" json:"storagePath"`
+	CertFile     string    `yaml:"certFile" json:"certFile"`
+	Domain       string    `yaml:"domain" json:"domain"`
+	Domains      []string  `yaml:"domains" json:"domains"`
+	Email        string    `yaml:"email" json:"email"`
+	EnableMode   string    `yaml:"enableMode" json:"enableMode"`
+	KeyFile      string    `yaml:"keyFile" json:"keyFile"`
+	RedirectHTTP bool      `yaml:"redirectHTTP" json:"redirectHTTP"`
+	RemoteAPI    RemoteAPI `yaml:"remoteAPI" json:"remoteAPI"`
+	StoragePath  string    `yaml:"storagePath" json:"storagePath"`
 }
 
 type HTTP struct {
@@ -147,11 +158,6 @@ type Logger struct {
 	Format string `yaml:"format" json:"format"`
 	IsSave bool   `yaml:"isSave" json:"isSave"`
 	Level  string `yaml:"level" json:"level"`
-}
-
-type Eab struct {
-	HmacKey string `yaml:"hmacKey" json:"hmacKey"`
-	Kid     string `yaml:"kid" json:"kid"`
 }
 
 type HealthCheck struct {
