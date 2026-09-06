@@ -40,11 +40,22 @@ type Config struct {
 	Upstream Upstream `yaml:"upstream" json:"upstream"`
 }
 
+type RemoteAPI struct {
+	Headers map[string]string `yaml:"headers" json:"headers"`
+	Timeout int               `yaml:"timeout" json:"timeout"`
+	URL     string            `yaml:"url" json:"url"`
+}
+
 type TLS struct {
-	AcmeDirectory string   `yaml:"acmeDirectory" json:"acmeDirectory"`
-	Domains       []string `yaml:"domains" json:"domains"`
-	Eab           Eab      `yaml:"eab" json:"eab"`
-	StoragePath   string   `yaml:"storagePath" json:"storagePath"`
+	CertFile     string    `yaml:"certFile" json:"certFile"`
+	Domain       string    `yaml:"domain" json:"domain"`
+	Domains      []string  `yaml:"domains" json:"domains"`
+	Email        string    `yaml:"email" json:"email"`
+	EnableMode   string    `yaml:"enableMode" json:"enableMode"`
+	KeyFile      string    `yaml:"keyFile" json:"keyFile"`
+	RedirectHTTP bool      `yaml:"redirectHTTP" json:"redirectHTTP"`
+	RemoteAPI    RemoteAPI `yaml:"remoteAPI" json:"remoteAPI"`
+	StoragePath  string    `yaml:"storagePath" json:"storagePath"`
 }
 
 type HTTP struct {
@@ -78,13 +89,21 @@ type Upstream struct {
 }
 
 type Proxy struct {
-	BadGatewayPage   string `yaml:"badGatewayPage" json:"badGatewayPage"`
-	Cache            Cache  `yaml:"cache" json:"cache"`
-	Enabled          bool   `yaml:"enabled" json:"enabled"`
-	ForwardHeaders   bool   `yaml:"forwardHeaders" json:"forwardHeaders"`
-	H2cEnabled       bool   `yaml:"h2cEnabled" json:"h2cEnabled"`
-	TargetURL        string `yaml:"targetURL" json:"targetURL"`
-	XSendfileEnabled bool   `yaml:"xSendfileEnabled" json:"xSendfileEnabled"`
+	BadGatewayPage   string      `yaml:"badGatewayPage" json:"badGatewayPage"`
+	Cache            Cache       `yaml:"cache" json:"cache"`
+	Enabled          bool        `yaml:"enabled" json:"enabled"`
+	ForwardHeaders   bool        `yaml:"forwardHeaders" json:"forwardHeaders"`
+	H2cEnabled       bool        `yaml:"h2cEnabled" json:"h2cEnabled"`
+	HealthCheck      HealthCheck `yaml:"healthCheck" json:"healthCheck"`
+	Management       Management  `yaml:"management" json:"management"`
+	Strategy         string      `yaml:"strategy" json:"strategy"`
+	TargetURL        string      `yaml:"targetURL" json:"targetURL"`
+	XSendfileEnabled bool        `yaml:"xSendfileEnabled" json:"xSendfileEnabled"`
+}
+
+type Management struct {
+	BasePath string `yaml:"basePath" json:"basePath"`
+	Enabled  bool   `yaml:"enabled" json:"enabled"`
 }
 
 type App struct {
@@ -141,9 +160,9 @@ type Logger struct {
 	Level  string `yaml:"level" json:"level"`
 }
 
-type Eab struct {
-	HmacKey string `yaml:"hmacKey" json:"hmacKey"`
-	Kid     string `yaml:"kid" json:"kid"`
+type HealthCheck struct {
+	IntervalSeconds int `yaml:"intervalSeconds" json:"intervalSeconds"`
+	TimeoutSeconds  int `yaml:"timeoutSeconds" json:"timeoutSeconds"`
 }
 
 // Changing Env from map[string]string to a struct means only the fields compiled into that struct will ever be forwarded to the upstream process.
