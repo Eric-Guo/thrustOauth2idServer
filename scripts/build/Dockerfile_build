@@ -1,7 +1,7 @@
 # Need to package the code first `tar zcf thrustOauth2idServer.tar.gz $(ls)` and move it to the same directory as Dokerfile
 
 # Compile the go code, you can specify the golang version
-FROM golang:1.23-alpine as build
+FROM golang:1.27.1-alpine AS build
 COPY . /go/src/thrustOauth2idServer
 WORKDIR /go/src/thrustOauth2idServer
 RUN tar zxf thrustOauth2idServer.tar.gz

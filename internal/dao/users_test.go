@@ -2,8 +2,11 @@ package dao
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
+	"regexp"
 	"testing"
+	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
@@ -100,6 +103,69 @@ func Test_usersDao_UpdateByID(t *testing.T) {
 
 }
 
+func TestUsersDaoUpdateTimestamps(t *testing.T) {
+	stamp := time.Date(2026, time.September, 6, 12, 0, 0, 0, time.UTC)
+	tests := []struct {
+		name   string
+		user   model.Users
+		update string
+		args   []driver.Value
+	}{
+		{
+			name:   "zero timestamps are omitted",
+			update: "`updated_at`=?",
+		},
+		{
+			name: "all timestamps are updated",
+			user: model.Users{
+				ConfirmationSentAt:  stamp,
+				ConfirmedAt:         stamp.Add(time.Second),
+				CurrentSignInAt:     stamp.Add(2 * time.Second),
+				LastSignInAt:        stamp.Add(3 * time.Second),
+				LockedAt:            stamp.Add(4 * time.Second),
+				RememberCreatedAt:   stamp.Add(5 * time.Second),
+				ResetPasswordSentAt: stamp.Add(6 * time.Second),
+			},
+			update: "`confirmation_sent_at`=?,`confirmed_at`=?,`current_sign_in_at`=?,`last_sign_in_at`=?," +
+				"`locked_at`=?,`remember_created_at`=?,`reset_password_sent_at`=?,`updated_at`=?",
+			args: []driver.Value{
+				stamp, stamp.Add(time.Second), stamp.Add(2 * time.Second), stamp.Add(3 * time.Second),
+				stamp.Add(4 * time.Second), stamp.Add(5 * time.Second), stamp.Add(6 * time.Second),
+			},
+		},
+		{
+			name: "only nonzero timestamps are updated",
+			user: model.Users{
+				CurrentSignInAt: stamp,
+				LockedAt:        stamp.Add(time.Second),
+			},
+			update: "`current_sign_in_at`=?,`locked_at`=?,`updated_at`=?",
+			args:   []driver.Value{stamp, stamp.Add(time.Second)},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := gotest.NewDao(nil, &tt.user)
+			t.Cleanup(d.Close)
+			tt.user.ID = 42
+
+			d.SQLMock.ExpectBegin()
+			d.SQLMock.ExpectExec(regexp.QuoteMeta("UPDATE `users` SET " + tt.update + " WHERE `id` = ?")).
+				WithArgs(append(tt.args, d.AnyTime, tt.user.ID)...).
+				WillReturnResult(sqlmock.NewResult(0, 1))
+			d.SQLMock.ExpectCommit()
+
+			if err := NewUsersDao(d.DB, nil).UpdateByID(d.Ctx, &tt.user); err != nil {
+				t.Fatal(err)
+			}
+			if err := d.SQLMock.ExpectationsWereMet(); err != nil {
+				t.Fatal(err)
+			}
+		})
+	}
+}
+
 func Test_usersDao_GetByID(t *testing.T) {
 	d := newUsersDao()
 	defer d.Close()
@@ -125,16 +191,18 @@ func Test_usersDao_GetByID(t *testing.T) {
 
 	// notfound error
 	d.SQLMock.ExpectQuery("SELECT .*").
-		WithArgs(2).
-		WillReturnRows(rows)
+		WithArgs(2, 1).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}))
 	_, err = d.IDao.(UsersDao).GetByID(d.Ctx, 2)
-	assert.Error(t, err)
+	assert.ErrorIs(t, err, database.ErrRecordNotFound)
 
+	wantErr := errors.New("database unavailable")
 	d.SQLMock.ExpectQuery("SELECT .*").
-		WithArgs(3, 4).
-		WillReturnRows(rows)
+		WithArgs(4, 1).
+		WillReturnError(wantErr)
 	_, err = d.IDao.(UsersDao).GetByID(d.Ctx, 4)
-	assert.Error(t, err)
+	assert.ErrorIs(t, err, wantErr)
+	assert.NoError(t, d.SQLMock.ExpectationsWereMet())
 }
 
 func Test_usersDao_GetByColumns(t *testing.T) {
@@ -230,8 +298,8 @@ func Test_usersDao_GetByCondition(t *testing.T) {
 
 	// notfound error
 	d.SQLMock.ExpectQuery("SELECT .*").
-		WithArgs(2).
-		WillReturnRows(rows)
+		WithArgs(2, 1).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}))
 	_, err = d.IDao.(UsersDao).GetByCondition(d.Ctx, &query.Conditions{
 		Columns: []query.Column{
 			{
@@ -240,7 +308,8 @@ func Test_usersDao_GetByCondition(t *testing.T) {
 			},
 		},
 	})
-	assert.Error(t, err)
+	assert.ErrorIs(t, err, database.ErrRecordNotFound)
+	assert.NoError(t, d.SQLMock.ExpectationsWereMet())
 }
 
 func Test_usersDao_GetByIDs(t *testing.T) {

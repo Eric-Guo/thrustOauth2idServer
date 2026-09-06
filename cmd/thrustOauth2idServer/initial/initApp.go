@@ -4,7 +4,6 @@
 package initial
 
 import (
-	"flag"
 	"strconv"
 
 	"github.com/go-dev-frame/sponge/pkg/logger"
@@ -16,14 +15,9 @@ import (
 	"thrust_oauth2id/internal/database"
 )
 
-var (
-	version    string
-	configFile string
-)
-
 // InitApp initial app configuration
-func InitApp() {
-	initConfig()
+func InitApp(configFile, version string) {
+	initConfig(configFile, version)
 	cfg := config.Get()
 
 	// initializing log
@@ -77,12 +71,8 @@ func InitApp() {
 	}
 }
 
-func initConfig() {
-	flag.StringVar(&version, "version", "", "service Version Number")
-	flag.StringVar(&configFile, "c", "", "configuration file")
-	flag.Parse()
-
-	getConfigFromLocal()
+func initConfig(configFile, version string) {
+	getConfigFromLocal(configFile)
 
 	if version != "" {
 		config.Get().App.Version = version
@@ -90,7 +80,7 @@ func initConfig() {
 }
 
 // get configuration from local configuration file
-func getConfigFromLocal() {
+func getConfigFromLocal(configFile string) {
 	if configFile == "" {
 		configFile = configs.Location("thrustOauth2idServer.yml")
 	}

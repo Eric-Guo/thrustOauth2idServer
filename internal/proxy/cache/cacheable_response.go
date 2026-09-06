@@ -21,7 +21,7 @@ var (
 // CacheableResponse captures enough of the downstream response to replay it from cache.
 type CacheableResponse struct {
 	StatusCode    int
-	HttpHeader    http.Header
+	HTTPHeader    http.Header
 	Body          []byte
 	VariantHeader http.Header
 
@@ -34,7 +34,7 @@ type CacheableResponse struct {
 func NewCacheableResponse(w http.ResponseWriter, maxBodyLength int) *CacheableResponse {
 	return &CacheableResponse{
 		StatusCode: http.StatusOK,
-		HttpHeader: http.Header{},
+		HTTPHeader: http.Header{},
 
 		responseWriter: w,
 		stasher:        NewStashingWriter(maxBodyLength, w),
@@ -50,19 +50,19 @@ func CacheableResponseFromBuffer(b []byte) (CacheableResponse, error) {
 	return cr, err
 }
 
-// ToBuffer serialises all cached response fields for storage.
+// ToBuffer serializes all cached response fields for storage.
 func (c *CacheableResponse) ToBuffer() ([]byte, error) {
 	c.Body = c.stasher.Body()
 
-	headerForStorage := cloneHeader(c.HttpHeader)
+	headerForStorage := cloneHeader(c.HTTPHeader)
 	if cacheable, _ := c.CacheStatus(); cacheable {
 		headerForStorage.Del("Set-Cookie")
 	}
 
-	originalHeader := c.HttpHeader
-	c.HttpHeader = headerForStorage
+	originalHeader := c.HTTPHeader
+	c.HTTPHeader = headerForStorage
 	defer func() {
-		c.HttpHeader = originalHeader
+		c.HTTPHeader = originalHeader
 	}()
 
 	var b bytes.Buffer
@@ -74,15 +74,15 @@ func (c *CacheableResponse) ToBuffer() ([]byte, error) {
 
 // Header implements http.ResponseWriter.
 func (c *CacheableResponse) Header() http.Header {
-	return c.HttpHeader
+	return c.HTTPHeader
 }
 
 // Write implements http.ResponseWriter.
-func (c *CacheableResponse) Write(bytes []byte) (int, error) {
+func (c *CacheableResponse) Write(p []byte) (int, error) {
 	if !c.headersWritten {
 		c.WriteHeader(http.StatusOK)
 	}
-	return c.stasher.Write(bytes)
+	return c.stasher.Write(p)
 }
 
 // WriteHeader implements http.ResponseWriter.
@@ -109,11 +109,11 @@ func (c *CacheableResponse) CacheStatus() (bool, time.Time) {
 		return false, time.Time{}
 	}
 
-	if strings.Contains(c.HttpHeader.Get("Vary"), "*") {
+	if strings.Contains(c.HTTPHeader.Get("Vary"), "*") {
 		return false, time.Time{}
 	}
 
-	cc := c.HttpHeader.Get("Cache-Control")
+	cc := c.HTTPHeader.Get("Cache-Control")
 
 	if !publicExp.MatchString(cc) || noCacheExp.MatchString(cc) {
 		return false, time.Time{}
@@ -148,7 +148,7 @@ func (c *CacheableResponse) WriteCachedResponse(w http.ResponseWriter, r *http.R
 // Private
 
 func (c *CacheableResponse) wasNotModified(r *http.Request) bool {
-	responseEtag := c.HttpHeader.Get("Etag")
+	responseEtag := c.HTTPHeader.Get("Etag")
 	if responseEtag == "" {
 		return false
 	}
@@ -164,7 +164,7 @@ func (c *CacheableResponse) wasNotModified(r *http.Request) bool {
 }
 
 func (c *CacheableResponse) copyHeaders(w http.ResponseWriter, wasHit bool, statusCode int) {
-	for k, v := range c.HttpHeader {
+	for k, v := range c.HTTPHeader {
 		w.Header()[k] = v
 	}
 

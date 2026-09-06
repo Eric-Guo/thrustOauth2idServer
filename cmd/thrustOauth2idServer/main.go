@@ -2,6 +2,8 @@
 package main
 
 import (
+	"flag"
+
 	"github.com/go-dev-frame/sponge/pkg/app"
 
 	"thrust_oauth2id/cmd/thrustOauth2idServer/initial"
@@ -17,7 +19,11 @@ import (
 // @name Authorization
 // @description Type Bearer your-jwt-token to Value
 func main() {
-	initial.InitApp()
+	version := flag.String("version", "", "service Version Number")
+	configFile := flag.String("c", "", "configuration file")
+	flag.Parse()
+
+	initial.InitApp(*configFile, *version)
 	services := initial.CreateServices()
 	closes := initial.Close(services)
 

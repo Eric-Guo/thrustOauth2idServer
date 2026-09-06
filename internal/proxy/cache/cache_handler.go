@@ -41,13 +41,13 @@ func NewCacheHandler(cache Cache, maxBodySize int, next http.Handler) *CacheHand
 func (h *CacheHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	variant := NewVariant(r)
 	baseKey := variant.CacheKey()
-	response, key, found := h.fetchFromCache(r, variant, baseKey)
+	response, found := h.fetchFromCache(r, variant, baseKey)
 
 	if found {
-		variant.SetResponseHeader(response.HttpHeader)
+		variant.SetResponseHeader(response.HTTPHeader)
 		h.rememberVariantHeaders(baseKey, variant.HeaderNames())
 		if !variant.Matches(response.VariantHeader) {
-			response, key, found = h.fetchFromCache(r, variant, baseKey)
+			response, found = h.fetchFromCache(r, variant, baseKey)
 		}
 	}
 
@@ -68,9 +68,9 @@ func (h *CacheHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	cacheable, expires := cr.CacheStatus()
 	if cacheable {
-		variant.SetResponseHeader(cr.HttpHeader)
+		variant.SetResponseHeader(cr.HTTPHeader)
 		h.rememberVariantHeaders(baseKey, variant.HeaderNames())
-		key = variant.CacheKey()
+		key := variant.CacheKey()
 		cr.VariantHeader = variant.VariantHeader()
 
 		encoded, err := cr.ToBuffer()
@@ -85,24 +85,24 @@ func (h *CacheHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // Private
 
-func (h *CacheHandler) fetchFromCache(r *http.Request, variant *Variant, baseKey CacheKey) (CacheableResponse, CacheKey, bool) {
+func (h *CacheHandler) fetchFromCache(r *http.Request, variant *Variant, baseKey CacheKey) (CacheableResponse, bool) {
 	if headerNames := h.loadVariantHeaders(baseKey); len(headerNames) > 0 {
 		variant.ApplyHeaderNames(headerNames)
 	}
 
 	key := variant.CacheKey()
 	if response, found := h.lookupCacheEntry(r, key); found {
-		return response, key, true
+		return response, true
 	}
 
 	// Fallback for legacy entries stored under the base key without variant headers.
 	if key != baseKey {
 		if response, found := h.lookupCacheEntry(r, baseKey); found {
-			return response, baseKey, true
+			return response, true
 		}
 	}
 
-	return CacheableResponse{}, key, false
+	return CacheableResponse{}, false
 }
 
 func (h *CacheHandler) lookupCacheEntry(r *http.Request, key CacheKey) (CacheableResponse, bool) {

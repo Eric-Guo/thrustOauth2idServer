@@ -20,7 +20,7 @@ func usersRouter(group *gin.RouterGroup, h handler.UsersHandler) {
 	railsCfg := config.Get().Rails
 	if railsCfg.SecretKeyBase != "change-me" {
 		g.Use(middleware.RailsCookieAuthMiddleware(railsCfg.SecretKeyBase, railsCfg.CookieName))
-		g.Use(VerifyRailsSessionUserIdIs(int64(railsCfg.UserID)))
+		g.Use(VerifyRailsSessionUserIDIs(int64(railsCfg.UserID)))
 	}
 
 	// If jwt authentication is not required for all routes, authentication middleware can be added

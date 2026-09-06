@@ -153,9 +153,7 @@ func (s *Server) Stop() error {
 			if killErr := cmd.Process.Kill(); killErr != nil && !errors.Is(killErr, os.ErrProcessDone) {
 				return fmt.Errorf("kill upstream process: %w", killErr)
 			}
-			if done != nil {
-				<-done
-			}
+			<-done
 		}
 	}
 

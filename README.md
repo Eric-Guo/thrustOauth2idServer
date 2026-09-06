@@ -24,7 +24,8 @@ b-driver=sqlite --db-dsn='/Users/guochunzhong/git/sso/oauth2id/storage/oauth2id_
 
 ## 技术栈
 
-- 编程语言：go
+- 编程语言：Go 1.27.1（与本地 Sponge 模块保持一致）
+- 代码检查：golangci-lint v2（使用支持 Go 1.27 的版本）
 - Web 框架：gin
 - 配置管理：viper
 - 日志：zap

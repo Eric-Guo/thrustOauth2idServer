@@ -63,11 +63,7 @@ func (s *httpServer) Start() error {
 		return nil
 	}
 
-	if err := serveHTTP(s.httpServer); err != nil {
-		return err
-	}
-
-	return nil
+	return serveHTTP(s.httpServer)
 }
 
 // Stop http/https service

@@ -3,6 +3,7 @@ package dao
 import (
 	"context"
 	"errors"
+	"time"
 
 	"golang.org/x/sync/singleflight"
 	"gorm.io/gorm"
@@ -105,20 +106,8 @@ func (d *usersDao) updateDataByID(ctx context.Context, db *gorm.DB, table *model
 	if table.ResetPasswordToken != "" {
 		update["reset_password_token"] = table.ResetPasswordToken
 	}
-	if table.ResetPasswordSentAt.IsZero() == false {
-		update["reset_password_sent_at"] = table.ResetPasswordSentAt
-	}
-	if table.RememberCreatedAt.IsZero() == false {
-		update["remember_created_at"] = table.RememberCreatedAt
-	}
 	if table.SignInCount != 0 {
 		update["sign_in_count"] = table.SignInCount
-	}
-	if table.CurrentSignInAt.IsZero() == false {
-		update["current_sign_in_at"] = table.CurrentSignInAt
-	}
-	if table.LastSignInAt.IsZero() == false {
-		update["last_sign_in_at"] = table.LastSignInAt
 	}
 	if table.CurrentSignInIP != "" {
 		update["current_sign_in_ip"] = table.CurrentSignInIP
@@ -129,12 +118,6 @@ func (d *usersDao) updateDataByID(ctx context.Context, db *gorm.DB, table *model
 	if table.ConfirmationToken != "" {
 		update["confirmation_token"] = table.ConfirmationToken
 	}
-	if table.ConfirmedAt.IsZero() == false {
-		update["confirmed_at"] = table.ConfirmedAt
-	}
-	if table.ConfirmationSentAt.IsZero() == false {
-		update["confirmation_sent_at"] = table.ConfirmationSentAt
-	}
 	if table.UnconfirmedEmail != "" {
 		update["unconfirmed_email"] = table.UnconfirmedEmail
 	}
@@ -144,9 +127,6 @@ func (d *usersDao) updateDataByID(ctx context.Context, db *gorm.DB, table *model
 	if table.UnlockToken != "" {
 		update["unlock_token"] = table.UnlockToken
 	}
-	if table.LockedAt.IsZero() == false {
-		update["locked_at"] = table.LockedAt
-	}
 	if table.Admin != 0 {
 		update["admin"] = table.Admin
 	}
@@ -155,6 +135,20 @@ func (d *usersDao) updateDataByID(ctx context.Context, db *gorm.DB, table *model
 	}
 	if table.RememberToken != "" {
 		update["remember_token"] = table.RememberToken
+	}
+
+	for column, value := range map[string]time.Time{
+		"reset_password_sent_at": table.ResetPasswordSentAt,
+		"remember_created_at":    table.RememberCreatedAt,
+		"current_sign_in_at":     table.CurrentSignInAt,
+		"last_sign_in_at":        table.LastSignInAt,
+		"confirmed_at":           table.ConfirmedAt,
+		"confirmation_sent_at":   table.ConfirmationSentAt,
+		"locked_at":              table.LockedAt,
+	} {
+		if !value.IsZero() {
+			update[column] = value
+		}
 	}
 
 	return db.WithContext(ctx).Model(table).Updates(update).Error
@@ -170,17 +164,17 @@ func (d *usersDao) GetByID(ctx context.Context, id uint64) (*model.Users, error)
 	}
 
 	// get from cache
-	record, err := d.cache.Get(ctx, id)
-	if err == nil {
+	record, cacheErr := d.cache.Get(ctx, id)
+	if cacheErr == nil {
 		return record, nil
 	}
 
 	// get from database
-	if errors.Is(err, database.ErrCacheNotFound) {
+	if errors.Is(cacheErr, database.ErrCacheNotFound) {
 		// for the same id, prevent high concurrent simultaneous access to database
-		val, err, _ := d.sfg.Do(utils.Uint64ToStr(id), func() (interface{}, error) {
+		val, fetchErr, _ := d.sfg.Do(utils.Uint64ToStr(id), func() (interface{}, error) {
 			table := &model.Users{}
-			err = d.db.WithContext(ctx).Where("id = ?", id).First(table).Error
+			err := d.db.WithContext(ctx).Where("id = ?", id).First(table).Error
 			if err != nil {
 				// set placeholder cache to prevent cache penetration, default expiration time 10 minutes
 				if errors.Is(err, database.ErrRecordNotFound) {
@@ -197,8 +191,8 @@ func (d *usersDao) GetByID(ctx context.Context, id uint64) (*model.Users, error)
 			}
 			return table, nil
 		})
-		if err != nil {
-			return nil, err
+		if fetchErr != nil {
+			return nil, fetchErr
 		}
 		table, ok := val.(*model.Users)
 		if !ok {
@@ -207,11 +201,11 @@ func (d *usersDao) GetByID(ctx context.Context, id uint64) (*model.Users, error)
 		return table, nil
 	}
 
-	if d.cache.IsPlaceholderErr(err) {
+	if d.cache.IsPlaceholderErr(cacheErr) {
 		return nil, database.ErrRecordNotFound
 	}
 
-	return nil, err
+	return nil, cacheErr
 }
 
 // GetByColumns get a paginated list of userss by custom conditions.
