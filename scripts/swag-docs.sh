@@ -1,6 +1,6 @@
 #!/bin/bash
 
-HOST_ADDR=$1
+set -e
 
 function checkResult() {
     result=$1
@@ -14,12 +14,30 @@ go mod tidy
 checkResult $?
 gofmt -s -w .
 
-# change host addr
-if [ "X${HOST_ADDR}" = "X" ];then
-  HOST_ADDR=$(cat cmd/thrustOauth2idServer/main.go | grep "@host" | awk '{print $3}')
-  HOST_ADDR=$(echo  ${HOST_ADDR} | cut -d ':' -f 1)
-else
-    sed -i "s/@host .*:8080/@host ${HOST_ADDR}:8080/g" cmd/thrustOauth2idServer/main.go
+# get config address from thrustOauth2idServer.yml
+configHost=$(bash scripts/parseYaml.sh configs/thrustOauth2idServer.yml '.app.host')
+if [ "${configHost}" = "127.0.0.1" ]; then
+  configHost="localhost"
+fi
+configPort=$(bash scripts/parseYaml.sh configs/thrustOauth2idServer.yml '.http.port')
+configAddr="${configHost}:${configPort}"
+enableMode=$(bash scripts/parseYaml.sh configs/thrustOauth2idServer.yml '.http.tls.enableMode')
+schemes="http"
+if [ "$enableMode" != "" ]; then
+  schemes="https"
+fi
+
+# get swagger address from main.go
+swaggerAddr=$(grep -E '^[[:space:]]*//[[:space:]]*@host' "cmd/thrustOauth2idServer/main.go" | awk '{print $3}')
+if [[ -z "${swaggerAddr}" ]]; then
+  swaggerAddr="localhost:8080"
+fi
+if [ "${configAddr}" != "${swaggerAddr}" ];then
+  mainFile="cmd/thrustOauth2idServer/main.go"
+  temporaryFile=$(mktemp)
+  awk -v host="${configAddr}" '/^[[:space:]]*\/\/[[:space:]]*@host[[:space:]]/ { $0 = "// @host " host } { print }' "$mainFile" > "$temporaryFile"
+  cat "$temporaryFile" > "$mainFile"
+  rm -f "$temporaryFile"
 fi
 
 # generate api docs
@@ -38,7 +56,7 @@ highBright='\033[1m'
 markEnd='\033[0m'
 
 echo ""
-echo -e "${highBright}Tip:${markEnd} execute the command ${colorCyan}make run${markEnd} and then visit ${colorCyan}http://${HOST_ADDR}:8080/swagger/index.html${markEnd} in your browser."
+echo -e "${highBright}Tip:${markEnd} start the service with ${colorCyan}make run${markEnd}, and open ${colorCyan}${schemes}://${configAddr}/swagger/index.html${markEnd} to explore the Swagger API docs."
 echo ""
 echo -e "${colorGreen}generated api docs done.${markEnd}"
 echo ""

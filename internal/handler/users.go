@@ -290,7 +290,7 @@ func (h *usersHandler) GetByCondition(c *gin.Context) {
 		response.Error(c, ecode.InvalidParams)
 		return
 	}
-	err = form.CheckValid()
+	err = form.Conditions.CheckValid()
 	if err != nil {
 		logger.Warn("Parameters error: ", logger.Err(err), middleware.GCtxRequestIDField(c))
 		response.Error(c, ecode.InvalidParams)

@@ -7,15 +7,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-dev-frame/sponge/pkg/logger"
+
 	"github.com/gin-gonic/gin"
 
 	"github.com/go-dev-frame/sponge/pkg/app"
 	"github.com/go-dev-frame/sponge/pkg/httpsrv"
-	"github.com/go-dev-frame/sponge/pkg/logger"
 
 	"thrust_oauth2id/internal/config"
 	"thrust_oauth2id/internal/routers"
-	"thrust_oauth2id/internal/server/httpmiddleware"
 )
 
 var _ app.IServer = (*httpServer)(nil)
@@ -25,69 +25,24 @@ type httpServer struct {
 	server *httpsrv.Server
 }
 
-// Start http service.
+// Start http service
 func (s *httpServer) Start() error {
 	if err := s.server.Run(); err != nil {
-		return fmt.Errorf("run %s service error: %w", s.server.Scheme(), err)
+		return fmt.Errorf("run %s service error: %v", s.server.Scheme(), err)
 	}
-
 	return nil
 }
 
-// Stop http service.
+// Stop http service
 func (s *httpServer) Stop() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-
 	return s.server.Shutdown(ctx)
 }
 
-// String provides a human readable description of listener addresses.
+// String comment
 func (s *httpServer) String() string {
 	return s.server.Scheme() + " service address is " + s.addr
-}
-
-// NewHTTPServer creates an HTTP server.
-func NewHTTPServer(cfg config.HTTP, opts ...HTTPOption) app.IServer {
-	o := defaultHTTPOptions()
-	o.apply(opts...)
-
-	if o.isProd {
-		gin.SetMode(gin.ReleaseMode)
-	} else {
-		gin.SetMode(gin.DebugMode)
-	}
-
-	appHandler := o.handler
-	if appHandler == nil {
-		appHandler = routers.NewRouter()
-	}
-
-	appHandler = httpmiddleware.Wrap(appHandler, httpmiddleware.Options{
-		AddRequestStartHeader: cfg.AddRequestStartHeader,
-		GzipEnabled:           cfg.GzipEnabled,
-		LogRequests:           cfg.LogRequests,
-		MaxRequestBodyBytes:   cfg.MaxRequestBodyBytes,
-	})
-
-	readTimeout := secondsToDuration(cfg.ReadTimeout)
-	writeTimeout := secondsToDuration(cfg.WriteTimeout)
-	idleTimeout := secondsToDuration(cfg.IdleTimeout)
-	addr := serviceAddr(cfg)
-
-	server := &http.Server{
-		Addr:           addr,
-		Handler:        appHandler,
-		ReadTimeout:    readTimeout,
-		WriteTimeout:   writeTimeout,
-		IdleTimeout:    idleTimeout,
-		MaxHeaderBytes: 1 << 20,
-	}
-
-	return &httpServer{
-		addr:   addr,
-		server: newServer(server, cfg),
-	}
 }
 
 func newServer(server *http.Server, cfg config.HTTP) *httpsrv.Server {
@@ -226,4 +181,44 @@ func (m invalidTLSMode) Validate() error {
 
 func (m invalidTLSMode) Run(_ *http.Server) error {
 	return m.Validate()
+}
+
+// NewHTTPServer creates a new http server
+func NewHTTPServer(addr string, opts ...HTTPOption) app.IServer {
+	o := defaultHTTPOptions()
+	o.apply(opts...)
+	cfg := config.Get().HTTP
+	if o.tls != nil {
+		cfg.TLS = *o.tls
+	}
+	if normalizeTLSMode(cfg.TLS.EnableMode) != "" && cfg.HTTPSPort > 0 {
+		addr = serviceAddr(cfg)
+	}
+
+	if o.isProd {
+		gin.SetMode(gin.ReleaseMode)
+	} else {
+		gin.SetMode(gin.DebugMode)
+	}
+
+	router := o.handler
+	if router == nil {
+		router = routers.NewRouter()
+	}
+	server := &http.Server{
+		Addr: addr,
+		Handler: httpsrv.WrapHandler(router, httpsrv.MiddlewareOptions{
+			AddRequestStartHeader: cfg.AddRequestStartHeader, GzipEnabled: cfg.GzipEnabled,
+			LogRequests: cfg.LogRequests, MaxRequestBodyBytes: cfg.MaxRequestBodyBytes,
+		}),
+		ReadTimeout:    secondsToDuration(cfg.ReadTimeout),
+		WriteTimeout:   secondsToDuration(cfg.WriteTimeout),
+		IdleTimeout:    secondsToDuration(cfg.IdleTimeout),
+		MaxHeaderBytes: 1 << 20,
+	}
+
+	return &httpServer{
+		addr:   addr,
+		server: newServer(server, cfg),
+	}
 }

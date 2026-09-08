@@ -5,6 +5,9 @@ package initial
 
 import (
 	"strconv"
+	"time"
+
+	ginAuth "github.com/go-dev-frame/sponge/pkg/gin/middleware/auth"
 
 	"github.com/go-dev-frame/sponge/pkg/logger"
 	"github.com/go-dev-frame/sponge/pkg/stat"
@@ -68,6 +71,9 @@ func InitApp(configFile, version string) {
 	database.InitCache(cfg.App.CacheType)
 	if cfg.App.CacheType != "" {
 		logger.Infof("[%s] was initialized", cfg.App.CacheType)
+	}
+	if cfg.JWT.SigningKey != "" && cfg.JWT.SigningKey != "change-me" {
+		ginAuth.InitAuth([]byte(cfg.JWT.SigningKey), time.Duration(cfg.JWT.Expire)*time.Second)
 	}
 }
 

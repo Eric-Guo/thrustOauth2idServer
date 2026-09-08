@@ -31,7 +31,13 @@ spec:
             - name: thrust-oauth-2id-server-vl
               mountPath: /app/configs/
               readOnly: true
-
+            - name: host-timezone
+              mountPath: /etc/localtime
+              readOnly: true
+          #env:
+          #  - name: TZ
+          #    value: "Asia/Shanghai"
+          
           ports:
             - name: http-port
               containerPort: 8080
@@ -61,3 +67,7 @@ spec:
         - name: thrust-oauth-2id-server-vl
           configMap:
             name: thrust-oauth-2id-server-config
+        - name: host-timezone
+          hostPath:
+            path: /etc/localtime
+            type: File

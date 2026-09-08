@@ -1,13 +1,18 @@
 package server
 
-import "net/http"
+import (
+	"net/http"
+
+	"thrust_oauth2id/internal/config"
+)
 
 // HTTPOption setting up http
 type HTTPOption func(*httpOptions)
 
 type httpOptions struct {
-	isProd  bool
 	handler http.Handler
+	isProd  bool
+	tls     *config.TLS
 }
 
 func defaultHTTPOptions() *httpOptions {
@@ -29,9 +34,14 @@ func WithHTTPIsProd(isProd bool) HTTPOption {
 	}
 }
 
-// WithHTTPHandler allows injecting a custom http handler (primarily for testing)
-func WithHTTPHandler(handler http.Handler) HTTPOption {
+// WithHTTPTLS setting up tls
+func WithHTTPTLS(tls config.TLS) HTTPOption {
 	return func(o *httpOptions) {
-		o.handler = handler
+		o.tls = &tls
 	}
+}
+
+// WithHTTPHandler supplies the application handler.
+func WithHTTPHandler(handler http.Handler) HTTPOption {
+	return func(o *httpOptions) { o.handler = handler }
 }

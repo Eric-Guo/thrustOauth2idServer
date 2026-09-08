@@ -1,19 +1,12 @@
 package model
 
 import (
+	"github.com/go-dev-frame/sponge/pkg/sgorm"
 	"time"
 )
 
-// BaseModel a base model that includes the ID, CreatedAt, and UpdatedAt fields
-// remove deleted_at from sponge/pkg/sgorm/base_model.go
-type BaseModel struct {
-	ID        uint64    `gorm:"primary_key" json:"id"`
-	CreatedAt time.Time `gorm:"column:created_at" json:"createdAt"`
-	UpdatedAt time.Time `gorm:"column:updated_at" json:"updatedAt"`
-}
-
 type Users struct {
-	BaseModel `gorm:"embedded"` // embed id and time
+	sgorm.BaseModel `gorm:"embedded"` // embed id and time
 
 	Email               string    `gorm:"column:email;type:varchar(100);not null" json:"email"`
 	EncryptedPassword   string    `gorm:"column:encrypted_password;type:varchar(100);not null" json:"encryptedPassword"`
@@ -32,7 +25,7 @@ type Users struct {
 	FailedAttempts      int       `gorm:"column:failed_attempts;type:int(11);not null" json:"failedAttempts"`
 	UnlockToken         string    `gorm:"column:unlock_token;type:varchar(100)" json:"unlockToken"`
 	LockedAt            time.Time `gorm:"column:locked_at;type:datetime" json:"lockedAt"`
-	Admin               int       `gorm:"column:admin;type:tinyint(4)" json:"admin"`
+	Admin               bool      `gorm:"column:admin;type:tinyint(1)" json:"admin"`
 	Username            string    `gorm:"column:username;type:varchar(100)" json:"username"`
 	RememberToken       string    `gorm:"column:remember_token;type:varchar(100)" json:"rememberToken"`
 }

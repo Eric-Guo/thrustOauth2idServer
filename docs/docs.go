@@ -437,7 +437,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "admin": {
-                    "type": "integer"
+                    "type": "boolean"
                 },
                 "confirmationSentAt": {
                     "type": "string"
@@ -697,7 +697,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "admin": {
-                    "type": "integer"
+                    "type": "boolean"
                 },
                 "confirmationSentAt": {
                     "type": "string"
@@ -766,7 +766,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "admin": {
-                    "type": "integer"
+                    "type": "boolean"
                 },
                 "confirmationSentAt": {
                     "type": "string"

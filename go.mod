@@ -4,15 +4,12 @@ go 1.27.1
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
-	github.com/dgraph-io/ristretto v0.2.0
 	github.com/gin-gonic/gin v1.10.1
-	github.com/go-dev-frame/sponge v1.15.1
-	github.com/klauspost/compress v1.17.8
+	github.com/go-dev-frame/sponge v1.16.1
 	github.com/stretchr/testify v1.10.0
 	github.com/swaggo/files v0.0.0-20220728132757-551d4a08d97a
 	github.com/swaggo/gin-swagger v1.5.2
 	github.com/swaggo/swag v1.8.12
-	golang.org/x/net v0.38.0
 	golang.org/x/sync v0.12.0
 	gorm.io/gorm v1.30.3
 )
@@ -25,11 +22,12 @@ require (
 	github.com/alicebob/miniredis/v2 v2.23.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bytedance/gopkg v0.1.3 // indirect
-	github.com/bytedance/sonic v1.15.3 // indirect
-	github.com/bytedance/sonic/loader v0.5.2 // indirect
+	github.com/bytedance/sonic v1.15.2 // indirect
+	github.com/bytedance/sonic/loader v0.5.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cloudwego/base64x v0.1.6 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/dgraph-io/ristretto v0.2.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/ebitengine/purego v0.8.4 // indirect
@@ -61,6 +59,7 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
+	github.com/klauspost/compress v1.17.8 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.9 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
@@ -114,6 +113,7 @@ require (
 	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/arch v0.8.0 // indirect
 	golang.org/x/crypto v0.36.0 // indirect
+	golang.org/x/net v0.38.0 // indirect
 	golang.org/x/sys v0.34.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
 	golang.org/x/tools v0.22.0 // indirect

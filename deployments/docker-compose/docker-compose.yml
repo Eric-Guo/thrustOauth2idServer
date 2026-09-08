@@ -8,6 +8,9 @@ services:
     command: ["./thrustOauth2idServer", "-c", "/app/configs/thrustOauth2idServer.yml"]
     volumes:
       - $PWD/configs:/app/configs
+      - /etc/localtime:/etc/localtime:ro  # mount the local time file
+    #environment:
+    #  - TZ=Asia/Shanghai
     ports:
       - "8080:8080"   # http port
     healthcheck:

@@ -29,7 +29,7 @@ type CreateUsersRequest struct {
 	FailedAttempts      int        `json:"failedAttempts" binding:""`
 	UnlockToken         string     `json:"unlockToken" binding:""`
 	LockedAt            *time.Time `json:"lockedAt" binding:""`
-	Admin               int        `json:"admin" binding:""`
+	Admin               bool       `json:"admin" binding:""`
 	Username            string     `json:"username" binding:""`
 	RememberToken       string     `json:"rememberToken" binding:""`
 }
@@ -55,7 +55,7 @@ type UpdateUsersByIDRequest struct {
 	FailedAttempts      int        `json:"failedAttempts" binding:""`
 	UnlockToken         string     `json:"unlockToken" binding:""`
 	LockedAt            *time.Time `json:"lockedAt" binding:""`
-	Admin               int        `json:"admin" binding:""`
+	Admin               bool       `json:"admin" binding:""`
 	Username            string     `json:"username" binding:""`
 	RememberToken       string     `json:"rememberToken" binding:""`
 }
@@ -83,7 +83,7 @@ type UsersObjDetail struct {
 	LockedAt            *time.Time `json:"lockedAt"`
 	CreatedAt           *time.Time `json:"createdAt"`
 	UpdatedAt           *time.Time `json:"updatedAt"`
-	Admin               int        `json:"admin"`
+	Admin               bool       `json:"admin"`
 	Username            string     `json:"username"`
 	RememberToken       string     `json:"rememberToken"`
 }

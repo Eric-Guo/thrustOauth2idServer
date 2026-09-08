@@ -27,9 +27,81 @@ data:
     # http server settings
     http:
       port: 8080                # listen port
+      httpsPort: 8443           # https listen port when tls is enabled
       timeout: 0                # request timeout, unit(second), if 0 means not set, if greater than 0 means set timeout, if enableHTTPProfile is true, it needs to set 0 or greater than 60s
+      idleTimeout: 60           # http idle timeout, unit(second)
+      readTimeout: 30           # http read timeout, unit(second)
+      writeTimeout: 30          # http write timeout, unit(second)
+      addRequestStartHeader: true # ensure X-Request-Start header is present on inbound requests
+      gzipEnabled: true         # compress responses when true using gzhttp
+      maxRequestBodyBytes: 0    # maximum allowed request body in bytes; 0 disables the limit
+      logRequests: true         # enable structured access logging
+      tls:
+        # TLS mode options:
+        #   self-signed - use sponge managed localhost self-signed certificates
+        #   encrypt     - use sponge Let's Encrypt integration, requires domain and email
+        #   external    - use existing certFile and keyFile
+        #   remote-api  - fetch certificate files from a remote API
+        enableMode: ""          # empty disables tls
+        domain: ""              # required when enableMode is encrypt; domains below is kept as a legacy alias
+        domains:
+          - ""                  # legacy alias; first non-empty value is used when domain is empty
+        email: ""               # required when enableMode is encrypt
+        certFile: ""            # required when enableMode is external
+        keyFile: ""             # required when enableMode is external
+        storagePath: "./storage/httpsrv" # certificate cache directory for sponge tls modes
+        redirectHTTP: false     # encrypt mode only; redirect http.port traffic to HTTPS on httpsPort
+        remoteAPI:
+          url: ""               # required when enableMode is remote-api
+          timeout: 5            # remote API timeout, unit(second)
+          headers: {}           # optional request headers for remote-api mode
+    
+    proxy:
+      enabled: false            # when true, proxy unmatched requests to targetURL
+      strategy: "round_robin"   # load balancing strategy: round_robin, least_connections, ip_hash
+      xSendfileEnabled: true    # when true, translate X-Sendfile headers into direct file responses
+      targetURL: "" # upstream url to proxy requests to, empty will using targetBindSocket in upstream
+      forwardHeaders: true        # preserve client-provided X-Forwarded-* headers
+      badGatewayPage: "./public/502.html" # optional html page to serve on 502 errors
+      # When enabled and targetURL is http (not https) and not using a UNIX socket,
+      # the reverse proxy will use HTTP/2 prior-knowledge to the upstream.
+      # See upstream discussion: https://github.com/basecamp/thruster/pull/89
+      h2cEnabled: false
+      healthCheck:
+        intervalSeconds: 5      # proxykit active health check interval
+        timeoutSeconds: 2       # proxykit health check timeout
+      management:
+        enabled: false          # expose proxykit management APIs when true
+        basePath: "/proxykit"   # base path for add/remove/list proxy endpoints
+      cache:
+        enabled: true             # enable in-memory caching for cacheable responses
+        capacityBytes: 67108864   # total bytes allocated for cached responses (64MB default)
+        maxItemSizeBytes: 1048576 # maximum per-response size (1MB default)
+        maxResponseBodyBytes: 1048576 # maximum body captured before skipping cache
+    
+    upstream:
+      enabled: false              # when true, launch and supervise a local upstream command
+      command: "bin/rails"        # executable to run for the upstream Rails application (arguments may be included here)
+      args:                       # optional arguments appended after parsing command; leave empty when command already contains them
+        - "server"
+      workingDirectory: ""        # change to rails app directory before starting the command
+      targetPort: 3000            # port the upstream process should bind to; exported as PORT, if targetBindSocket set, will using socket first
+      targetBindSocket: ""       # optional UNIX socket path, e.g. unix:///tmp/puma.sock
+      stopSignal: "SIGTERM"       # signal sent when shutting down; defaults to SIGTERM if empty
+      env: {}                     # additional environment variables passed to the upstream process
+        # RAILS_ENV: "development"
+    
+    # rails cookie auth settings
+    rails:
+      secretKeyBase: "change-me"      # run rails credentials:show to get secret_key_base
+      cookieName: "_session" # find in config/initializers/session_store.rb or via browser
+      userID: 1                 # permitted Rails session user ID
     
     
+    # jwt settings
+    jwt:
+      signingKey: "change-me"    # jwt signing key for token validation and generation
+      expire: 86400              # token expiry seconds (24h)
     
     # logger settings
     logger:

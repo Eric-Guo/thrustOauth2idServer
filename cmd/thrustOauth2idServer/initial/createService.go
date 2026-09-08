@@ -9,7 +9,6 @@ import (
 
 	"thrust_oauth2id/internal/config"
 	"thrust_oauth2id/internal/server"
-	"thrust_oauth2id/internal/upstream"
 )
 
 // CreateServices create http service
@@ -18,7 +17,7 @@ func CreateServices() []app.IServer {
 	var servers []app.IServer
 
 	// create a http service
-	httpServer := server.NewHTTPServer(cfg.HTTP,
+	httpServer := server.NewHTTPServer(":"+strconv.Itoa(cfg.HTTP.Port),
 		server.WithHTTPIsProd(cfg.App.Env == "prod"),
 	)
 	servers = append(servers, httpServer)
@@ -33,7 +32,11 @@ func CreateServices() []app.IServer {
 			cfg.Upstream.TargetPort = deriveTargetPort(cfg.Proxy.TargetURL)
 		}
 
-		servers = append(servers, upstream.NewServer(cfg.Upstream))
+		servers = append(servers, app.NewUpstreamServer(app.UpstreamConfig{
+			Enabled: cfg.Upstream.Enabled, Command: cfg.Upstream.Command, Args: cfg.Upstream.Args,
+			WorkingDirectory: cfg.Upstream.WorkingDirectory, TargetPort: cfg.Upstream.TargetPort,
+			TargetBindSocket: cfg.Upstream.TargetBindSocket, StopSignal: cfg.Upstream.StopSignal, Env: cfg.Upstream.Env,
+		}))
 	}
 
 	return servers

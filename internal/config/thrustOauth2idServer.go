@@ -33,29 +33,12 @@ type Config struct {
 	Database Database `yaml:"database" json:"database"`
 	HTTP     HTTP     `yaml:"http" json:"http"`
 	Jaeger   Jaeger   `yaml:"jaeger" json:"jaeger"`
+	JWT      JWT      `yaml:"jwt" json:"jwt"`
 	Logger   Logger   `yaml:"logger" json:"logger"`
 	Proxy    Proxy    `yaml:"proxy" json:"proxy"`
 	Rails    Rails    `yaml:"rails" json:"rails"`
 	Redis    Redis    `yaml:"redis" json:"redis"`
 	Upstream Upstream `yaml:"upstream" json:"upstream"`
-}
-
-type RemoteAPI struct {
-	Headers map[string]string `yaml:"headers" json:"headers"`
-	Timeout int               `yaml:"timeout" json:"timeout"`
-	URL     string            `yaml:"url" json:"url"`
-}
-
-type TLS struct {
-	CertFile     string    `yaml:"certFile" json:"certFile"`
-	Domain       string    `yaml:"domain" json:"domain"`
-	Domains      []string  `yaml:"domains" json:"domains"`
-	Email        string    `yaml:"email" json:"email"`
-	EnableMode   string    `yaml:"enableMode" json:"enableMode"`
-	KeyFile      string    `yaml:"keyFile" json:"keyFile"`
-	RedirectHTTP bool      `yaml:"redirectHTTP" json:"redirectHTTP"`
-	RemoteAPI    RemoteAPI `yaml:"remoteAPI" json:"remoteAPI"`
-	StoragePath  string    `yaml:"storagePath" json:"storagePath"`
 }
 
 type HTTP struct {
@@ -78,14 +61,14 @@ type Jaeger struct {
 }
 
 type Upstream struct {
-	Args             []string `yaml:"args" json:"args"`
-	Command          string   `yaml:"command" json:"command"`
-	Enabled          bool     `yaml:"enabled" json:"enabled"`
-	Env              Env      `yaml:"env" json:"env"`
-	StopSignal       string   `yaml:"stopSignal" json:"stopSignal"`
-	TargetBindSocket string   `yaml:"targetBindSocket" json:"targetBindSocket"`
-	TargetPort       int      `yaml:"targetPort" json:"targetPort"`
-	WorkingDirectory string   `yaml:"workingDirectory" json:"workingDirectory"`
+	Args             []string          `yaml:"args" json:"args"`
+	Command          string            `yaml:"command" json:"command"`
+	Enabled          bool              `yaml:"enabled" json:"enabled"`
+	Env              map[string]string `yaml:"env" json:"env"`
+	StopSignal       string            `yaml:"stopSignal" json:"stopSignal"`
+	TargetBindSocket string            `yaml:"targetBindSocket" json:"targetBindSocket"`
+	TargetPort       int               `yaml:"targetPort" json:"targetPort"`
+	WorkingDirectory string            `yaml:"workingDirectory" json:"workingDirectory"`
 }
 
 type Proxy struct {
@@ -128,6 +111,18 @@ type Cache struct {
 	MaxResponseBodyBytes int  `yaml:"maxResponseBodyBytes" json:"maxResponseBodyBytes"`
 }
 
+type TLS struct {
+	CertFile     string    `yaml:"certFile" json:"certFile"`
+	Domain       string    `yaml:"domain" json:"domain"`
+	Domains      []string  `yaml:"domains" json:"domains"`
+	Email        string    `yaml:"email" json:"email"`
+	EnableMode   string    `yaml:"enableMode" json:"enableMode"`
+	KeyFile      string    `yaml:"keyFile" json:"keyFile"`
+	RedirectHTTP bool      `yaml:"redirectHTTP" json:"redirectHTTP"`
+	RemoteAPI    RemoteAPI `yaml:"remoteAPI" json:"remoteAPI"`
+	StoragePath  string    `yaml:"storagePath" json:"storagePath"`
+}
+
 type Sqlite struct {
 	ConnMaxLifetime int    `yaml:"connMaxLifetime" json:"connMaxLifetime"`
 	DBFile          string `yaml:"dbFile" json:"dbFile"`
@@ -154,10 +149,21 @@ type Database struct {
 	Sqlite Sqlite `yaml:"sqlite" json:"sqlite"`
 }
 
+type JWT struct {
+	Expire     int    `yaml:"expire" json:"expire"`
+	SigningKey string `yaml:"signingKey" json:"signingKey"`
+}
+
 type Logger struct {
 	Format string `yaml:"format" json:"format"`
 	IsSave bool   `yaml:"isSave" json:"isSave"`
 	Level  string `yaml:"level" json:"level"`
+}
+
+type RemoteAPI struct {
+	Headers map[string]string `yaml:"headers" json:"headers"`
+	Timeout int               `yaml:"timeout" json:"timeout"`
+	URL     string            `yaml:"url" json:"url"`
 }
 
 type HealthCheck struct {
@@ -165,7 +171,4 @@ type HealthCheck struct {
 	TimeoutSeconds  int `yaml:"timeoutSeconds" json:"timeoutSeconds"`
 }
 
-// Changing Env from map[string]string to a struct means only the fields compiled into that struct will ever be forwarded to the upstream process.
-// Any additional environment variable a deployer adds to the YAML (for example RAILS_LOG_TO_STDOUT or DATABASE_URL) will now be ignored by conf.Parse, so buildEnv() never sees it. Previously this worked without touching the Go code, which is critical for configuration.
-// This blocks operators from adding new env vars unless they rebuild the binary, so we need to keep Env as a map (or another dynamic representation).
-type Env map[string]string
+type Headers struct{}

@@ -3,6 +3,8 @@ package routers
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-dev-frame/sponge/pkg/gin/middleware"
+	"github.com/go-dev-frame/sponge/pkg/jwt"
+	"github.com/go-dev-frame/sponge/pkg/logger"
 
 	"thrust_oauth2id/internal/config"
 	"thrust_oauth2id/internal/handler"
@@ -17,10 +19,20 @@ func init() {
 func usersRouter(group *gin.RouterGroup, h handler.UsersHandler) {
 	g := group.Group("/users")
 
-	railsCfg := config.Get().Rails
-	if railsCfg.SecretKeyBase != "change-me" {
-		g.Use(middleware.RailsCookieAuthMiddleware(railsCfg.SecretKeyBase, railsCfg.CookieName))
-		g.Use(VerifyRailsSessionUserIDIs(int64(railsCfg.UserID)))
+	// JWT authentication reference: https://go-sponge.com/component/transport/gin.html#jwt-authorization-middleware
+
+	// All the following routes use jwt authentication, you also can use middleware.Auth(middleware.WithExtraVerify(fn))
+	//g.Use(middleware.Auth())
+	// not change-me signing key will make routes use jwt authentication
+	jwtCfg := config.Get().JWT
+	if jwtCfg.SigningKey != "" && jwtCfg.SigningKey != "change-me" {
+		g.Use(middleware.Auth(
+			middleware.WithSignKey([]byte(jwtCfg.SigningKey)),
+			middleware.WithExtraVerify(func(claims *jwt.Claims, c *gin.Context) error {
+				logger.Info("middleware.Auth", logger.Any("claims", claims))
+				return nil
+			}),
+		))
 	}
 
 	// If jwt authentication is not required for all routes, authentication middleware can be added
