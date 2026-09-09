@@ -26,7 +26,9 @@ http:
   readTimeout: 30           # http read timeout, unit(second)
   writeTimeout: 30          # http write timeout, unit(second)
   addRequestStartHeader: true # ensure X-Request-Start header is present on inbound requests
-  gzipEnabled: true         # compress responses when true using gzhttp
+  gzipEnabled: true         # compress eligible API, Rails, and file responses
+  gzipJitter: 32             # maximum gzip padding in bytes; 0 disables BREACH jitter
+  gzipDisableOnAuth: false   # skip gzip for sensitive request/response headers
   maxRequestBodyBytes: 0    # maximum allowed request body in bytes; 0 disables the limit
   logRequests: true         # enable structured access logging
   tls:
@@ -54,7 +56,7 @@ proxy:
   strategy: "round_robin"   # load balancing strategy: round_robin, least_connections, ip_hash
   xSendfileEnabled: true    # when true, translate X-Sendfile headers into direct file responses
   targetURL: "" # upstream url to proxy requests to, empty will using targetBindSocket in upstream
-  forwardHeaders: true        # preserve client-provided X-Forwarded-* headers
+  forwardHeaders: true        # trust client X-Forwarded-* and X-Request-ID; set false when terminating public TLS
   badGatewayPage: "./public/502.html" # optional html page to serve on 502 errors
   # When enabled and targetURL is http (not https) and not using a UNIX socket,
   # the reverse proxy will use HTTP/2 prior-knowledge to the upstream.

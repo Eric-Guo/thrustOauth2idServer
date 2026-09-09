@@ -17,8 +17,10 @@ func Close(servers []app.IServer) []app.Close {
 	var closes []app.Close
 
 	// close server
-	for _, s := range servers {
-		closes = append(closes, s.Stop)
+	// Stop the supervised upstream before draining the HTTP listener, so parent
+	// signals reach Rails immediately and its final exit status is available.
+	for i := len(servers) - 1; i >= 0; i-- {
+		closes = append(closes, servers[i].Stop)
 	}
 
 	// close database

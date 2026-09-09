@@ -3,6 +3,11 @@
 
 # thrustOauth2idServer (http, monolith)
 
+Thruster-compatible Rails proxy with critical APIs implemented in Sponge/Gin.
+The runtime port through `3ef8516` includes compression safeguards, cache isolation,
+TLS redirect validation, request IDs, and child process exit status propagation.
+See [the compatibility mapping, settings, and validation guide](docs/thruster-port.md).
+
 ## Web 生成参数
 
 ```bash

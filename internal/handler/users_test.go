@@ -233,7 +233,7 @@ func Test_usersHandler_List(t *testing.T) {
 	h.MockDao.SQLMock.ExpectQuery("SELECT .*").WillReturnRows(rows)
 
 	result := &httpcli.StdResult{}
-	err := httpcli.Post(result, h.GetRequestURL("List"), &types.ListUserssRequest{query.Params{
+	err := httpcli.Post(result, h.GetRequestURL("List"), &types.ListUserssRequest{Params: query.Params{
 		Page:  0,
 		Limit: 10,
 		Sort:  "ignore count", // ignore test count
@@ -250,7 +250,7 @@ func Test_usersHandler_List(t *testing.T) {
 	assert.NoError(t, err)
 
 	// get error test
-	err = httpcli.Post(result, h.GetRequestURL("List"), &types.ListUserssRequest{query.Params{
+	err = httpcli.Post(result, h.GetRequestURL("List"), &types.ListUserssRequest{Params: query.Params{
 		Page:  0,
 		Limit: 10,
 		Sort:  "unknown-column",
@@ -301,7 +301,7 @@ func Test_usersHandler_GetByCondition(t *testing.T) {
 
 	result := &httpcli.StdResult{}
 	err := httpcli.Post(result, h.GetRequestURL("GetByCondition"), &types.GetUsersByConditionRequest{
-		query.Conditions{
+		Conditions: query.Conditions{
 			Columns: []query.Column{
 				{
 					Name:  "id",
@@ -323,7 +323,7 @@ func Test_usersHandler_GetByCondition(t *testing.T) {
 
 	// get error test
 	err = httpcli.Post(result, h.GetRequestURL("GetByCondition"), &types.GetUsersByConditionRequest{
-		query.Conditions{
+		Conditions: query.Conditions{
 			Columns: []query.Column{
 				{
 					Name:  "id",

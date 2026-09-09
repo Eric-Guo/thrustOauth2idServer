@@ -206,11 +206,8 @@ func NewHTTPServer(addr string, opts ...HTTPOption) app.IServer {
 		router = routers.NewRouter()
 	}
 	server := &http.Server{
-		Addr: addr,
-		Handler: httpsrv.WrapHandler(router, httpsrv.MiddlewareOptions{
-			AddRequestStartHeader: cfg.AddRequestStartHeader, GzipEnabled: cfg.GzipEnabled,
-			LogRequests: cfg.LogRequests, MaxRequestBodyBytes: cfg.MaxRequestBodyBytes,
-		}),
+		Addr:           addr,
+		Handler:        newHTTPHandler(router, cfg),
 		ReadTimeout:    secondsToDuration(cfg.ReadTimeout),
 		WriteTimeout:   secondsToDuration(cfg.WriteTimeout),
 		IdleTimeout:    secondsToDuration(cfg.IdleTimeout),
@@ -221,4 +218,13 @@ func NewHTTPServer(addr string, opts ...HTTPOption) app.IServer {
 		addr:   addr,
 		server: newServer(server, cfg),
 	}
+}
+
+func newHTTPHandler(router http.Handler, cfg config.HTTP) http.Handler {
+	return httpsrv.WrapHandler(router, httpsrv.MiddlewareOptions{
+		AddRequestStartHeader: cfg.AddRequestStartHeader, GzipEnabled: cfg.GzipEnabled,
+		GzipJitter: cfg.GzipJitter, GzipDisableOnAuth: cfg.GzipDisableOnAuth,
+		AddRequestID: true, TrustRequestIDHeader: config.Get().Proxy.ForwardHeaders,
+		LogRequests: cfg.LogRequests, MaxRequestBodyBytes: cfg.MaxRequestBodyBytes,
+	})
 }

@@ -44,6 +44,8 @@ type Config struct {
 type HTTP struct {
 	AddRequestStartHeader bool `yaml:"addRequestStartHeader" json:"addRequestStartHeader"`
 	GzipEnabled           bool `yaml:"gzipEnabled" json:"gzipEnabled"`
+	GzipJitter            int  `yaml:"gzipJitter" json:"gzipJitter"`
+	GzipDisableOnAuth     bool `yaml:"gzipDisableOnAuth" json:"gzipDisableOnAuth"`
 	HTTPSPort             int  `yaml:"httpsPort" json:"httpsPort"`
 	IdleTimeout           int  `yaml:"idleTimeout" json:"idleTimeout"`
 	LogRequests           bool `yaml:"logRequests" json:"logRequests"`

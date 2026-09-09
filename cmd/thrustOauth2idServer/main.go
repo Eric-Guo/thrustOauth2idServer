@@ -3,6 +3,7 @@ package main
 
 import (
 	"flag"
+	"os"
 
 	"github.com/go-dev-frame/sponge/pkg/app"
 
@@ -28,5 +29,5 @@ func main() {
 	closes := initial.Close(services)
 
 	a := app.New(services, closes)
-	a.Run()
+	os.Exit(a.RunWithExitCode())
 }

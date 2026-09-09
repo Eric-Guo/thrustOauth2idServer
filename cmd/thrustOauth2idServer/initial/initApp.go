@@ -90,7 +90,7 @@ func getConfigFromLocal(configFile string) {
 	if configFile == "" {
 		configFile = configs.Location("thrustOauth2idServer.yml")
 	}
-	err := config.Init(configFile)
+	err := config.Load(configFile)
 	if err != nil {
 		panic("init config error: " + err.Error())
 	}

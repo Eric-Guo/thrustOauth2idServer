@@ -19,6 +19,12 @@ ci-lint:
 test:
 	go test -count=1 -short ${PKG_LIST}
 
+.PHONY: check
+# Vet all application packages and check reachable dependency vulnerabilities.
+check:
+	go vet ./...
+	go tool govulncheck ./...
+
 
 .PHONY: cover
 # Generate test coverage
